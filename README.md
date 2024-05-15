@@ -6,7 +6,7 @@
 <div align="center">🐰장준혁 팀장 🐂김영광 팀원 🐲박세종 팀원 🐴윤지용 팀원</div>
 <br/>
 https://www.teamkip.info/
-<p></p>
+<p>ID: k-2007440058 / PASS: 1234 </p>
 
 ![image](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/48e030d3-17a1-445a-8f84-a0e172cec39b)
 
