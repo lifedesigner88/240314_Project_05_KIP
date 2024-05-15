@@ -7,9 +7,9 @@
 <br/>
 https://www.teamkip.info/
 
-![프로젝트-1위-박세종](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/a8c1596a-6e71-4fdf-aac9-22860a00a970)
-
 ![image](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/48e030d3-17a1-445a-8f84-a0e172cec39b)
+
+![프로젝트-1위-박세종](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/a8c1596a-6e71-4fdf-aac9-22860a00a970)
 
 ---
 
