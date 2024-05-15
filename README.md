@@ -152,31 +152,22 @@
 ---
 
 
-<summary>
-  <b>⭐ ERD</b>
-</summary>
-<div markdown="1">
+### <b>⭐ ERD</b>
   
 <p align="center">
   <img src="https://github.com/beyond-sw-camp/be03-fin-5TEAM-KIP/assets/148752498/1d2009c9-4811-4ed2-9956-97d8e93da44b">
 </p>
   
-</div>
-
 
 ---
 
 
-<summary>
-  <b>⭐ WBS</b>
-</summary>
-<div markdown="1">
+### ⭐ WBS
 
 <p align="center">
   <img src="https://github.com/beyond-sw-camp/be03-fin-5TEAM-KIP/assets/148752498/b15d6953-c466-446a-89d4-c21e84929911">
 </p>
 
-</div>
 
 
 ---
@@ -200,9 +191,8 @@
 ---
 
 
-<summary>
-  <b>⭐ 시스템 아키텍처 설계서</b>
-</summary>
+### ⭐ 시스템 아키텍처 설계서
+
 <div markdown="1">
   
 <p align="center">
@@ -210,6 +200,11 @@
 </p>
 
 </div>
+
+---
+
+### ⭐ 핵심기술
+
 
 
 ---
