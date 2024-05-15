@@ -151,7 +151,7 @@
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ ERD</b>
 </summary>
@@ -162,11 +162,11 @@
 </p>
   
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ WBS</b>
 </summary>
@@ -177,7 +177,7 @@
 </p>
 
 </div>
-</details>
+
 
 ---
 
@@ -199,7 +199,7 @@
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 시스템 아키텍처 설계서</b>
 </summary>
@@ -210,7 +210,7 @@
 </p>
 
 </div>
-</details>
+
 
 ---
 
