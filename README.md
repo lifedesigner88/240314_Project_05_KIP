@@ -205,6 +205,7 @@
 
 ### ⭐ 핵심기술
 
+![image](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/8911b03e-bc47-4e60-ba74-a5413455ca10)
 
 
 ---
