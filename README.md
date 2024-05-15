@@ -12,6 +12,10 @@ https://www.teamkip.info/
 
 ![프로젝트-1위-박세종](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/a8c1596a-6e71-4fdf-aac9-22860a00a970)
 
+
+[KIP PPT - 산출물 제출용.pdf](https://github.com/lifedesigner88/240314_Project_05_KIP/files/15318458/KIP.PPT.-.pdf)
+
+
 ---
 
 <details>
