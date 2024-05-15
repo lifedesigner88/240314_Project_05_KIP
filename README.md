@@ -624,7 +624,8 @@
 
 ---
 
-### ⭐ 배포 후 통합 테스트 결과서
+<details>
+<summary><b>⭐ 배포 후 통합 테스트 결과서</b></summary>
 <div markdown="1">
 
 #### ⭐ AWS amplify를 통한 프론트엔드 배포
@@ -705,3 +706,4 @@
 </p>
 
 </div>
+</details>
