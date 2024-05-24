@@ -162,9 +162,7 @@ https://www.teamkip.info/
 
 ### <b>⭐ ERD</b>
   
-<p align="center">
 ![image](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/ed004c5a-7cfb-417b-8ad1-70dd0672e90a)
-</p>
   
 
 ---
