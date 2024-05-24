@@ -163,7 +163,7 @@ https://www.teamkip.info/
 ### <b>⭐ ERD</b>
   
 <p align="center">
-  <img src="https://github.com/beyond-sw-camp/be03-fin-5TEAM-KIP/assets/148752498/1d2009c9-4811-4ed2-9956-97d8e93da44b">
+![image](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/ed004c5a-7cfb-417b-8ad1-70dd0672e90a)
 </p>
   
 
