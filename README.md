@@ -5,7 +5,6 @@
 ### <div align="center">5조 Team_KIP(knowledge Is Power)</div>
 <div align="center">🐰장준혁 팀장 🐂김영광 팀원 🐲박세종 팀원 🐴윤지용 팀원</div>
 <br/>
-https://blog.naver.com/PostList.naver?blogId=lifedesigner88&categoryNo=34&skinType=&skinId=&from=menu
 
 
 ⭐ [개발 히스토리](https://blog.naver.com/PostList.naver?blogId=lifedesigner88&categoryNo=34&skinType=&skinId=&from=menu)
