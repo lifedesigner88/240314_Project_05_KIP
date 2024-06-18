@@ -5,10 +5,11 @@
 ### <div align="center">5조 Team_KIP(knowledge Is Power)</div>
 <div align="center">🐰장준혁 팀장 🐂김영광 팀원 🐲박세종 팀원 🐴윤지용 팀원</div>
 <br/>
-https://www.teamkip.info/
-<p>ID: k-2007440058 / PASS: 1234 </p>
+https://blog.naver.com/PostList.naver?blogId=lifedesigner88&categoryNo=34&skinType=&skinId=&from=menu
 
-![image](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/48e030d3-17a1-445a-8f84-a0e172cec39b)
+
+⭐ [개발 히스토리](https://blog.naver.com/PostList.naver?blogId=lifedesigner88&categoryNo=34&skinType=&skinId=&from=menu)
+
 
 ![프로젝트-1위-박세종](https://github.com/lifedesigner88/240314_Project_05_KIP/assets/123573918/a8c1596a-6e71-4fdf-aac9-22860a00a970)
 
