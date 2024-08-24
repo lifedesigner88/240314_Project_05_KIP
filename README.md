@@ -41,7 +41,7 @@
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 기술 스택</b>
 </summary>
@@ -72,11 +72,11 @@
 <br/>
 
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 요구사항 정의서</b>
 </summary>
@@ -119,11 +119,11 @@
 <br/>
 
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 조직의 구성(예시)</b>
 </summary>
@@ -155,7 +155,7 @@
 - 방산부문, ICT부문의 각각의 부장들은 12명 이하로 구성된 팀을 수시로 만들 수 있으며 부장은 부서내 팀장을 통해 팀원들을 관리한다.
 
 </div>
-</details>
+
 
 ---
 
@@ -179,7 +179,7 @@
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 화면설계서</b>
 </summary>
@@ -193,7 +193,7 @@
 #### 📌 [KIP 화면설계 피그마 링크](https://www.figma.com/file/7uzpyZLpNiRnG6SaqKPq0G/KIP_FrontPage?type=design&node-id=0%3A1&mode=design&t=bmqXufLzF1sSbCEr-1)
 
 </div>
-</details>
+
 
 ---
 
@@ -217,7 +217,7 @@
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 프로그램 사양서</b>
 </summary>
@@ -234,11 +234,11 @@
 </p>
 
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary><b>⭐ 주요 단위 테스트 결과서</b></summary>
 <div markdown="1">
 
@@ -346,11 +346,11 @@
 </p>
 
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary><b>⭐ UI/UX 단위 테스트결과서</b></summary>
 <div markdown="1">
 
@@ -577,11 +577,11 @@
 </p>
 
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary><b>⭐ CI/CD 계획서</b></summary>
 <div markdown="1">
   
@@ -623,11 +623,11 @@
 - git push -> git action -> AWS S3 프론트엔드 빌드 리소스 업로드
 
 </div>
-</details>
+
 
 ---
 
-<details>
+
 <summary><b>⭐ 배포 후 통합 테스트 결과서</b></summary>
 <div markdown="1">
 
@@ -709,4 +709,3 @@
 </p>
 
 </div>
-</details>
