@@ -1,4 +1,4 @@
-# <div align="center">집단 지성 활용을 위한 지식 관리 시스템</div>
+![image](https://github.com/user-attachments/assets/9c97209f-48c8-4653-aa91-358d9f502c19)# <div align="center">집단 지성 활용을 위한 지식 관리 시스템</div>
 
 ## <div align="center">Knowledge Management System</div>
 
@@ -225,12 +225,11 @@
   
 - API 전체 목록
 <p align="center">
-  <img src="https://github.com/beyond-sw-camp/be03-fin-5TEAM-KIP/assets/148752498/7c963ddb-fc8a-4059-888e-05fd8f55bbb9">
+  ![image](https://github.com/user-attachments/assets/a2a2388b-5597-4af5-82bb-8195766b9dc2)
 </p>
 
-- 문서, 사용자 API 목록
 <p align="center">
-  <img src="https://github.com/beyond-sw-camp/be03-fin-5TEAM-KIP/assets/148752498/bef93dea-73ca-4367-9f69-a0b1a5143072">
+![image](https://github.com/user-attachments/assets/b2b38845-2e8d-495c-bbca-63c42fb7386a)
 </p>
 
 </div>
