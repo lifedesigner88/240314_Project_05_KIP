@@ -18,7 +18,7 @@
 
 ---
 
-<details>
+
 <summary>
   <b>⭐ 프로젝트 개요</b>
 </summary>
@@ -37,7 +37,7 @@
 <br/>
 
 </div>
-</details>
+
 
 ---
 
