@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/9c97209f-48c8-4653-aa91-358d9f502c19)# <div align="center">집단 지성 활용을 위한 지식 관리 시스템</div>
+# <div align="center">집단 지성 활용을 위한 지식 관리 시스템</div>
 
 ## <div align="center">Knowledge Management System</div>
 
@@ -224,13 +224,10 @@
 <div markdown="1">
   
 - API 전체 목록
-<p align="center">
-  ![image](https://github.com/user-attachments/assets/a2a2388b-5597-4af5-82bb-8195766b9dc2)
-</p>
 
-<p align="center">
-  ![image](https://github.com/user-attachments/assets/b2b38845-2e8d-495c-bbca-63c42fb7386a)
-</p>
+![image](https://github.com/user-attachments/assets/a2a2388b-5597-4af5-82bb-8195766b9dc2)
+
+![image](https://github.com/user-attachments/assets/b2b38845-2e8d-495c-bbca-63c42fb7386a)
 
 </div>
 
