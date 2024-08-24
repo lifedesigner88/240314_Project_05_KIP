@@ -229,7 +229,7 @@
 </p>
 
 <p align="center">
-![image](https://github.com/user-attachments/assets/b2b38845-2e8d-495c-bbca-63c42fb7386a)
+  ![image](https://github.com/user-attachments/assets/b2b38845-2e8d-495c-bbca-63c42fb7386a)
 </p>
 
 </div>
