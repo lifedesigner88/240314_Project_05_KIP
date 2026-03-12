@@ -155,7 +155,7 @@ public class RequestService {
 
 	private User findByEmployeeId(String employeeId) {
 		return userRepository.findByEmployeeId(employeeId)
-			.orElseThrow(() -> new IllegalArgumentException("사번이 잘못되었습니다."));
+			.orElseThrow(() -> new IllegalArgumentException("아이디 형식을 확인해 주세요."));
 	}
 
 	@Transactional

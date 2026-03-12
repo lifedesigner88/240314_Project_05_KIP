@@ -1,5 +1,10 @@
 import type {DefaultConfigOptions} from "@formkit/vue";
 import {createAutoAnimatePlugin} from "@formkit/addons"
+import {
+    EMPLOYEE_ID_FORMAT_MESSAGE,
+    EMPLOYEE_ID_NOT_FOUND_MESSAGE,
+    PASSWORD_FORMAT_MESSAGE,
+} from "./utils/employeeIdPolicy.js";
 
 const config: DefaultConfigOptions = {
     theme: "genesis",
@@ -7,10 +12,10 @@ const config: DefaultConfigOptions = {
     messages: {
         en: {
             validation: {
-                id_check: '존재하지 않는 사번 입니다.',
-                matches: '사번은 k-(10자리 숫자) 형식 입니다.',
+                id_check: EMPLOYEE_ID_NOT_FOUND_MESSAGE,
+                matches: EMPLOYEE_ID_FORMAT_MESSAGE,
                 pass_check: '잘못된 비밀번호 입니다.',
-                password_Regex: '패스워드는 4자리 숫자 입니다.'
+                password_Regex: PASSWORD_FORMAT_MESSAGE
 
             }
         }

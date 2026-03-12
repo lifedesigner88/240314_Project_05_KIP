@@ -183,8 +183,8 @@ watch(password, () => {
                 <v-card-text class="mr-10">
                   <!-- 이름 필드 -->
                   <v-text-field label="이름" outlined dense v-model="userInfo.name"></v-text-field>
-                  <!-- 사원 번호 필드 -->
-                  <v-text-field label="사원 번호" outlined dense v-model="userInfo.employeeId" readonly></v-text-field>
+                  <!-- 아이디 필드 -->
+                  <v-text-field label="아이디" outlined dense v-model="userInfo.employeeId" readonly></v-text-field>
                   <!-- 이메일 필드 -->
                   <v-text-field label="이메일" outlined dense v-model="userInfo.email"></v-text-field>
                   <!-- 전화번호 필드 -->

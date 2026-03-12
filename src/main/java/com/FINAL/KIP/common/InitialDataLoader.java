@@ -11,12 +11,14 @@ import com.FINAL.KIP.group.repository.GroupRepository;
 import com.FINAL.KIP.group.repository.GroupUserRepository;
 import com.FINAL.KIP.request.domain.Request;
 import com.FINAL.KIP.request.repository.RequestRepository;
+import com.FINAL.KIP.user.EmployeeIdPolicy;
 import com.FINAL.KIP.user.domain.Role;
 import com.FINAL.KIP.user.domain.User;
 import com.FINAL.KIP.user.repository.UserRepository;
 import com.FINAL.KIP.version.domain.Version;
 import com.FINAL.KIP.version.repository.VersionRepository;
 import jakarta.transaction.Transactional;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,9 +26,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class InitialDataLoader implements CommandLineRunner {
-
-    private static final String DEFAULT_PASSWORD = "1234";
-    private static final String ADMIN_EMPLOYEE_ID = "k-1234567890";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -57,7 +56,9 @@ public class InitialDataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.findByEmployeeId(ADMIN_EMPLOYEE_ID).isPresent()) {
+        migrateLegacySeedUsers();
+
+        if (userRepository.findByEmployeeId(EmployeeIdPolicy.ADMIN_EMPLOYEE_ID).isPresent()) {
             return;
         }
 
@@ -65,7 +66,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "소마멘토",
             "admin@kip.com",
             "01012345678",
-            ADMIN_EMPLOYEE_ID,
+            EmployeeIdPolicy.ADMIN_EMPLOYEE_ID,
             Role.ADMIN,
             "https://picsum.photos/seed/kip-admin/400",
             "2024년 3월 1일 금요일"
@@ -74,7 +75,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "김민서 PM",
             "pm@kip.com",
             "01010000001",
-            "k-2403140001",
+            "asm-0001",
             Role.USER,
             "https://picsum.photos/seed/kip-pm/400",
             "2024년 3월 4일 월요일"
@@ -83,7 +84,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "이도윤 Backend",
             "backend@kip.com",
             "01010000002",
-            "k-2403140002",
+            "asm-0002",
             Role.USER,
             "https://picsum.photos/seed/kip-backend/400",
             "2024년 3월 5일 화요일"
@@ -92,7 +93,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "박서윤 Frontend",
             "frontend@kip.com",
             "01010000003",
-            "k-2403140003",
+            "asm-0003",
             Role.USER,
             "https://picsum.photos/seed/kip-frontend/400",
             "2024년 3월 5일 화요일"
@@ -101,7 +102,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "정하늘 AI",
             "ai@kip.com",
             "01010000004",
-            "k-2403140004",
+            "asm-0004",
             Role.USER,
             "https://picsum.photos/seed/kip-ai/400",
             "2024년 3월 6일 수요일"
@@ -110,7 +111,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "최지훈 QA",
             "qa@kip.com",
             "01010000005",
-            "k-2403140005",
+            "asm-0005",
             Role.USER,
             "https://picsum.photos/seed/kip-qa/400",
             "2024년 3월 7일 목요일"
@@ -119,7 +120,7 @@ public class InitialDataLoader implements CommandLineRunner {
             "장유진 Mentor",
             "mentor@kip.com",
             "01010000006",
-            "k-2403140006",
+            "asm-0006",
             Role.USER,
             "https://picsum.photos/seed/kip-mentor/400",
             "2024년 3월 8일 금요일"
@@ -128,19 +129,19 @@ public class InitialDataLoader implements CommandLineRunner {
             "한서준 PO",
             "po@kip.com",
             "01010000007",
-            "k-2403140007",
+            "asm-0007",
             Role.USER,
             "https://picsum.photos/seed/kip-po/400",
             "2024년 3월 11일 월요일"
         );
 
         Group rootGroup = createGroup(
-            "AI 소프트웨어 마에스트로 데모",
+            "AI SW 마에스트로",
             GroupType.DEPARTMENT,
             null,
             admin,
             """
-            <h2>AI 소프트웨어 마에스트로 데모 지식 허브</h2>
+            <h2>AI SW 마에스트로 지식 허브</h2>
             <p>이 공간은 면접용 데모를 위해 구성된 샘플 지식관리 그룹입니다.</p>
             <ul>
               <li>공통 운영 문서</li>
@@ -432,6 +433,27 @@ docker compose ps</code></pre>
         createRequest(mentor, ragLog, 14, "Y");
     }
 
+    private void migrateLegacySeedUsers() {
+        Map<String, String> legacyEmployeeIdMap = Map.of(
+            "k-1234567890", EmployeeIdPolicy.ADMIN_EMPLOYEE_ID,
+            "k-2403140001", "asm-0001",
+            "k-2403140002", "asm-0002",
+            "k-2403140003", "asm-0003",
+            "k-2403140004", "asm-0004",
+            "k-2403140005", "asm-0005",
+            "k-2403140006", "asm-0006",
+            "k-2403140007", "asm-0007"
+        );
+
+        legacyEmployeeIdMap.forEach((legacyId, nextId) ->
+            userRepository.findByEmployeeId(legacyId).ifPresent(user -> {
+                if (!userRepository.existsByEmployeeId(nextId)) {
+                    user.setEmployeeId(nextId);
+                }
+            })
+        );
+    }
+
     private User createUser(
         String name,
         String email,
@@ -444,7 +466,7 @@ docker compose ps</code></pre>
         User user = User.builder()
             .name(name)
             .email(email)
-            .password(passwordEncoder.encode(DEFAULT_PASSWORD))
+            .password(passwordEncoder.encode(EmployeeIdPolicy.DEFAULT_PASSWORD))
             .phoneNumber(phoneNumber)
             .profileImageUrl(profileImageUrl)
             .employeeId(employeeId)

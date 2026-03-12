@@ -39,6 +39,7 @@ public class User extends BaseEntity {
 
     private String employedDay;
 
+    @Setter
     @Column(unique = true, nullable = false)
     private String employeeId;
 

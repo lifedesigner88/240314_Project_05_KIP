@@ -9,6 +9,7 @@ import com.FINAL.KIP.document.dto.res.AgreeDocResDto;
 import com.FINAL.KIP.request.domain.Request;
 import com.FINAL.KIP.request.repository.RequestRepository;
 import com.FINAL.KIP.securities.JwtTokenProvider;
+import com.FINAL.KIP.user.EmployeeIdPolicy;
 import com.FINAL.KIP.user.domain.User;
 import com.FINAL.KIP.user.dto.req.CreateUserReqDto;
 import com.FINAL.KIP.user.dto.req.LoginReqDto;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,20 +79,29 @@ public class UserService {
 //    Create
     @UserAdmin
     public UserResDto createUser(CreateUserReqDto dto) {
-        dto.setPassword(passwordEncoder.encode(dto.makeUserReqDtoToUser().getPassword())); // 비밀번호 암호화
-        User user = dto.makeUserReqDtoToUser();
+        User user = dto.makeUserReqDtoToUser(
+            passwordEncoder.encode(EmployeeIdPolicy.DEFAULT_PASSWORD),
+            getNextEmployeeId(getNextUserSequence())
+        );
         User savedUser = userRepo.save(user);
         return new UserResDto(savedUser);
     }
 
     @UserAdmin
     public List<UserResDto> createUsers(List<CreateUserReqDto> dtos) {
-        for (CreateUserReqDto createUserReqDto : dtos) {
-            createUserReqDto.setPassword(
-                passwordEncoder.encode(createUserReqDto.makeUserReqDtoToUser().getPassword()));
+        int nextSequence = getNextUserSequence();
+        List<User> users = new ArrayList<>();
+
+        for (CreateUserReqDto dto : dtos) {
+            users.add(
+                dto.makeUserReqDtoToUser(
+                    passwordEncoder.encode(EmployeeIdPolicy.DEFAULT_PASSWORD),
+                    getNextEmployeeId(nextSequence++)
+                )
+            );
         }
-        return dtos.stream()
-            .map(CreateUserReqDto::makeUserReqDtoToUser)
+
+        return users.stream()
             .map(userRepo::save)
             .map(UserResDto::new)
             .collect(Collectors.toList());
@@ -111,10 +122,11 @@ public class UserService {
     }
 
     public CommonResponse login(LoginReqDto loginReqDto) throws IllegalArgumentException{
+        validateEmployeeIdFormat(loginReqDto.getEmployeeId());
         User user = userRepo.findByEmployeeId(loginReqDto.getEmployeeId())
                 .filter(
                         kip -> passwordEncoder.matches(loginReqDto.getPassword(), kip.getPassword()))
-                .orElseThrow(() -> new IllegalArgumentException("사원번호 또는 비밀번호가 일치하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(EmployeeIdPolicy.LOGIN_FAILED_MESSAGE));
 
         String accessToken = jwtTokenProvider.createAccessToken(
                 String.format("%s:%s", user.getEmployeeId(), user.getRole()));
@@ -172,7 +184,8 @@ public class UserService {
     @Transactional
     @UserAdmin
     public void delete(String employeeId){
-        if(employeeId.equals("k-1234567890"))
+        validateEmployeeIdFormat(employeeId);
+        if (EmployeeIdPolicy.isAdmin(employeeId))
             throw new IllegalArgumentException("관리자 계정은 삭제 불가합니다.");
         User userInfo = getUserByEmployeeId(employeeId);
         userRepo.delete(userInfo);
@@ -186,8 +199,9 @@ public class UserService {
     }
 
     public User getUserByEmployeeId(String employeeId) {
+        validateEmployeeIdFormat(employeeId);
         return userRepo.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("사원번호를 찾을 수 없습니다. " + employeeId));
+                .orElseThrow(() -> new EntityNotFoundException("아이디를 찾을 수 없습니다. " + employeeId));
     }
 
     // 현재 인증된 사용자 정보 조회
@@ -325,10 +339,12 @@ public class UserService {
 
     // 로그인 이전에 기본 정보 체크하는 함수들
     public Boolean checkIfEmployeeIdExists(String employeeId) {
+        validateEmployeeIdFormat(employeeId);
         return userRepo.existsByEmployeeId(employeeId);
     }
 
     public Map<String, Object> checkIdPassAndReturnName(LoginReqDto dto) {
+        validateEmployeeIdFormat(dto.getEmployeeId());
         Map<String, Object> passwordValidAndUserName = new HashMap<>();
         User user = getUserByEmployeeId(dto.getEmployeeId());
         passwordValidAndUserName.put("userName", user.getName());
@@ -360,5 +376,30 @@ public class UserService {
             }).toList();
 
         return new ResponseEntity<>(collect, HttpStatus.OK);
+    }
+
+    private void validateEmployeeIdFormat(String employeeId) {
+        if (!EmployeeIdPolicy.isValid(employeeId)) {
+            throw new IllegalArgumentException(EmployeeIdPolicy.INVALID_FORMAT_MESSAGE);
+        }
+    }
+
+    private int getNextUserSequence() {
+        return userRepo.findAllByEmployeeIdStartingWith(EmployeeIdPolicy.PREFIX).stream()
+            .map(User::getEmployeeId)
+            .filter(EmployeeIdPolicy::isValid)
+            .map(EmployeeIdPolicy::extractSequence)
+            .filter(sequence -> sequence != EmployeeIdPolicy.ADMIN_SEQUENCE)
+            .max(Integer::compareTo)
+            .orElse(0) + 1;
+    }
+
+    private String getNextEmployeeId(int sequence) {
+        int nextSequence = sequence;
+        while (nextSequence == EmployeeIdPolicy.ADMIN_SEQUENCE
+            || userRepo.existsByEmployeeId(EmployeeIdPolicy.formatSequence(nextSequence))) {
+            nextSequence++;
+        }
+        return EmployeeIdPolicy.formatSequence(nextSequence);
     }
 }

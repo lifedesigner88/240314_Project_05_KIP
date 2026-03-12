@@ -20,16 +20,16 @@ public class CreateUserReqDto {
     private String employedDay;
     private String employeeId;
 
-    public User makeUserReqDtoToUser() {
+    public User makeUserReqDtoToUser(String encodedPassword, String employeeId) {
         return User.builder()
                 .name(this.name)
                 .email(this.email)
                 .phoneNumber(this.phoneNumber)
-                .password(this.password)
+                .password(encodedPassword)
 //                .profileImageUrl(this.profileImageUrl) 임시로 랜덤이미지
                 .profileImageUrl("https://picsum.photos/3"+ ThreadLocalRandom.current().nextInt(10, 99))
                 .employedDay(this.employedDay)
-                .employeeId(this.employeeId)
+                .employeeId(employeeId)
                 .role(Role.USER)
                 .build();
     }

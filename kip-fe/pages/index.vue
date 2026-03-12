@@ -1,6 +1,9 @@
 <script setup>
 import {useFirebaseApp} from "~/useFireBase.ts";
 import {useFirebaseMessaging} from "~/useFireBaseMessaging.ts";
+import {
+  EMPLOYEE_ID_PATTERN,
+} from "~/utils/employeeIdPolicy.js";
 
 definePageMeta({
   layout: "plain"
@@ -39,8 +42,7 @@ async function id_check(employeeId) {
 }
 
 function id_Regex(employeeId) {
-  // 사번 정규식 적는곳
-  return /^k-\d{10}$/.test(employeeId.value);
+  return EMPLOYEE_ID_PATTERN.test(employeeId.value);
 }
 
 // 비밀번호 체크 관련함수.
@@ -54,7 +56,6 @@ async function pass_check(password) {
 }
 
 function password_Regex(password) {
-  // 비밀번호 정규식 넣는 곳.
   return /^\d{4}$/.test(password.value);
 }
 
@@ -106,8 +107,8 @@ function handleEmptyInput() {
             <!--아이디 입력 받는 부분 -->
             <FormKit
                 v-model="empolyeeIdInput"
-                placeholder="Empolyment ID"
-                validation="id_check|matches:/^k-\d{10}$/"
+                placeholder="asm-1234"
+                validation="id_check|matches:/^asm-\d{4}$/"
                 validation-visibility="live"
                 :validation-rules="{id_check}"
                 type="text"
@@ -117,7 +118,7 @@ function handleEmptyInput() {
             <FormKit
                 v-model="passwordInput"
                 v-if="user.getIsExistId"
-                placeholder="Password"
+                placeholder="1234"
                 :suffix-icon="visible ? 'eye' : 'eyeClosed'"
                 @suffix-icon-click="visible = !visible"
                 suffix-icon-class="hover:text-blue-500"

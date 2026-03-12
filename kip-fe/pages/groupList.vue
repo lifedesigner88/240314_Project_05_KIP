@@ -1,6 +1,10 @@
 <script setup>
 import {VTreeview} from 'vuetify/labs/VTreeview'
 import {useRequest} from "~/stores/Request.js";
+import {
+  ADMIN_EMPLOYEE_ID,
+  DEFAULT_USER_PASSWORD,
+} from "~/utils/employeeIdPolicy.js";
 
 // 피니아
 const user = useUser();
@@ -29,11 +33,6 @@ group.TopNaviGroupList = [
   "부서목록",
   "타 부서 문서와 구성원을 조회할 수 있습니다. 🥩️"
 ];
-
-// 신규계정 데이터 관련
-const showPassword = ref(false)
-const showPasswordConfirm = ref(false);
-const passwordConfirm = ref('');
 
 // 그릅 유저 정보 초기화
 
@@ -64,7 +63,7 @@ const deletUserFromDataBaese = async (employeeId, name) => {
     alert("관리자에게 문의하세요.");
     return;
   }
-  if (employeeId === "k-1234567890")
+  if (employeeId === ADMIN_EMPLOYEE_ID)
     alert("관리자의 아이디는 삭제할 수 없습니다.")
   else {
     await user.deleteUser(employeeId, name);
@@ -78,9 +77,7 @@ const data = ref({
   name: '',
   email: '',
   phoneNumber: '',
-  password: '',
   employedDay: '',
-  employeeId: '',
 });
 
 // 최종 제출 관련 함수
@@ -89,12 +86,11 @@ const CreateNewUser = async (event) => {
   const results = await event
   await wait(500); // 0.5초 대기
   if (results.valid) {
-    await user.createUserAccount(data.value)
+    const createdUser = await user.createUserAccount(data.value)
     await groupUser.addCreatedUserToAllUsers(user.getCreatedUserData)
-    alert(`${user.getCreatedUserData.name}님의 계정이 생성되었습니다.`)
+    alert(`${createdUser.name}님의 계정이 생성되었습니다. 아이디: ${createdUser.employeeId} / 비밀번호: ${DEFAULT_USER_PASSWORD}`)
     Object.keys(data.value).forEach(key => data.value[key] = "");
     createMemberModdal.value = false; // 모달창 닫기
-    passwordConfirm.value = ""
   }
   loading.value = false
 }
@@ -116,17 +112,6 @@ const formattedDate = () => {
 // 폼데이터 벨리데이션 체크
 const rules = {
   nameRule: value => !!value || '이름 입력이 필요합니다.',
-
-  // 비밀번호
-  passwordRule: value => /^\d{4}$/.test(value) || '숫자 4자리로 입력해주세요.',
-  passwordConfim: value => data.value.password === value || '비밀번호가 일치하지 않습니다.',
-
-  // 사번
-  employeeIdRule: value => /^k-\d{10}$/.test(value) || '사번은 k- 포함 숫자 12자리 입니다',
-  employeeIdDupulicateCheck: async value => {
-    await user.isExistEmployeeIdForCreate(value)
-    return !user.getIsExistIdForCreate || '이미 존재하는 사번입니다.'
-  },
 
   // 연락처
   phoneNumberRule: value => /^010-\d{4}-\d{4}$/.test(value) || '010- 으로 시작하는 8자리 숫자를 입력해주세요',
@@ -714,42 +699,18 @@ const confirmRequest = async () => {
               <v-row>
                 <v-col>
                   <v-text-field
-                      label="사번"
-                      placeholder="k-1234567890"
-                      v-model="data.employeeId"
-                      :rules="[rules.employeeIdRule, rules.employeeIdDupulicateCheck]"
-                      clearable
-                      maxlength="12"
-                      required
-                      counter
+                      label="아이디"
+                      model-value="자동 발급"
+                      hint="신규 사용자는 asm-0001부터 순차 발급됩니다. 관리자 계정은 asm-1234 입니다."
+                      persistent-hint
+                      readonly
                   />
                   <v-text-field
-                      label="비밀번호"
-                      placeholder="1234"
-                      v-model="data.password"
-                      :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                      :rules="[rules.passwordRule]"
-                      :type="showPassword ? 'text' : 'password'"
-                      hint="4자리 숫자"
-                      maxlength="4"
-                      name="input-10-1"
-                      clearable
-                      counter
-                      @click:append="showPassword = !showPassword"
-                  />
-                  <v-text-field
-                      label="비밀번호 확인"
-                      placeholder="1234"
-                      v-model="passwordConfirm"
-                      :append-icon="showPasswordConfirm ? 'mdi-eye' : 'mdi-eye-off'"
-                      :rules="[rules.passwordRule, rules.passwordConfim]"
-                      :type="showPasswordConfirm ? 'text' : 'password'"
-                      maxlength="4"
-                      hint="4자리 숫자"
-                      name="input-10-1"
-                      clearable
-                      counter
-                      @click:append="showPasswordConfirm = !showPasswordConfirm"
+                      label="초기 비밀번호"
+                      :model-value="DEFAULT_USER_PASSWORD"
+                      hint="모든 신규 사용자 초기 비밀번호는 1234로 고정됩니다."
+                      persistent-hint
+                      readonly
                   />
                   <v-text-field
                       label="이름"

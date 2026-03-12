@@ -263,6 +263,6 @@ public class GroupService {
 
     private User findUserByEmployeeId(String employeeId) {
         return userRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사번의 회원이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 아이디의 회원이 존재하지 않습니다."));
     }
 }

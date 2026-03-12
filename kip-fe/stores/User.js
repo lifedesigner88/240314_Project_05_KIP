@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
+import { LOGIN_FAILED_MESSAGE } from "~/utils/employeeIdPolicy.js";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
 
@@ -114,10 +115,16 @@ export const useUser = defineStore("user", {
                     },
                     body: JSON.stringify(data),
                 });
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
                 this.createdUserData = await response.json();
+                return this.createdUserData;
 
             } catch (e) {
                 console.log(e, "새로운 계정 생성 실패")
+                alert(`계정 생성에 실패했습니다. ${e.message}`)
+                throw e
             }
         },
 
@@ -169,7 +176,7 @@ export const useUser = defineStore("user", {
 
             } catch (e) {
                 console.log(e, '로그인 실패')
-                alert("아이디 또는 비밀번호가 잘못 되었습니다.")
+                alert(LOGIN_FAILED_MESSAGE)
             }
 
         },
