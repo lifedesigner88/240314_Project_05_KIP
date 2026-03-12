@@ -15,18 +15,18 @@
 
 ## 프로젝트 소개
 
-KIP는 조직 내부의 문서와 노하우를 체계적으로 축적하고 공유하기 위한 사내 지식관리 시스템입니다.  
-문서 권한, 조직 계층, 버전 이력, 검색, 알림 기능을 함께 다루며 "정보는 쌓이는데 찾기 어렵고, 권한 때문에 공유가 막히는 문제" 해결에 집중.
+KIP는 그룹 내부의 문서와 노하우를 체계적으로 축적하고 공유하기 위한 사내 지식관리 시스템입니다.  
+문서 권한, 그룹 계층, 버전 이력, 검색, 알림 기능을 함께 다루며 "정보는 쌓이는데 찾기 어렵고, 권한 때문에 공유가 막히는 문제" 해결에 집중.
 
 ### 핵심 목표
-- 조직형 문서 자산 통합 관리.
+- 그룹형 문서 자산 통합 관리.
 - 팀과 부서 단위 권한 모델 적용.
 - 문서 검색, 해시태그, 북마크, 이력 관리로 재사용성 강화.
-- 관리자 중심 사용자/조직 관리 기능 구현.
+- 관리자 중심 사용자/그룹 관리 기능 구현.
 
 ### 핵심 포인트
 - `Nuxt 3 + Spring Boot` 분리형 아키텍처.
-- `JWT 기반 인증/인가`와 `조직 권한 모델`.
+- `JWT 기반 인증/인가`와 `그룹 권한 모델`.
 - `문서 버전 관리`, `권한 요청`, `첨부파일`, `검색`까지 포함한 업무형 서비스.
 - `AWS 기반 데모 배포` 경험.
 
@@ -36,12 +36,12 @@ KIP는 조직 내부의 문서와 노하우를 체계적으로 축적하고 공�
 
 ### 1. 권한 기반 문서 관리
 - 전체 공개 문서와 그룹 전용 문서 관리.
-- 상위 조직 관리자의 하위 조직 문서 열람 구조 설계.
-- 타 조직 문서 대상 권한 요청 및 승인 흐름 지원.
+- 상위 그룹 관리자의 하위 그룹 문서 열람 구조 설계.
+- 타 그룹 문서 대상 권한 요청 및 승인 흐름 지원.
 
-### 2. 관리자 중심 사용자/조직 관리
+### 2. 관리자 중심 사용자/그룹 관리
 - 관리자 계정 생성 및 그룹 배치 기능 구성.
-- 조직 계층 기반 그룹 생성, 수정, 삭제, 슈퍼유저 지정 기능 제공.
+- 그룹 계층 기반 그룹 생성, 수정, 삭제, 슈퍼유저 지정 기능 제공.
 
 ### 3. 지식 탐색 기능
 - 문서 검색, 해시태그, 북마크 기능 제공.
@@ -75,7 +75,7 @@ KIP는 조직 내부의 문서와 노하우를 체계적으로 축적하고 공�
 
 ## 기술 스택
 
-> 소스코드 기준으로 정리한 기술 스택입니다.
+> 실제 운영을 위한 기술스텍입니다. 
 
 ### 공통
 - 형상관리 및 협업: `Git`, `GitHub`, `Jira`, `Slack`
@@ -116,7 +116,7 @@ KIP는 조직 내부의 문서와 노하우를 체계적으로 축적하고 공�
 </p>
 
 - 프론트엔드 `Nuxt 3`, 백엔드 API 분리 구조.
-- 백엔드는 `Spring Boot` 기반으로 인증, 문서, 조직, 알림 도메인 처리.
+- 백엔드는 `Spring Boot` 기반으로 인증, 문서, 그룹, 알림 도메인 처리.
 - 검색, 파일 저장, 알림 기능은 외부 서비스 연동 구조로 확장.
 
 ---
@@ -137,74 +137,106 @@ KIP는 조직 내부의 문서와 노하우를 체계적으로 축적하고 공�
 
 ---
 
-## 기존 데모 배포 방식
-
-AWS 중심 구조로 데모 배포 진행.
-
-### 프론트엔드
-- `AWS Amplify`에 GitHub 저장소 연결 후 배포.
-- 환경변수 주입 및 커스텀 도메인 `www.teamkip.info` 연결.
-- 브랜치 변경 시 자동 프론트 배포 진행.
-
-### 백엔드
-- `GitHub Actions`에서 Docker 이미지 빌드.
-- 빌드 이미지 `Amazon ECR` 푸시.
-- `Amazon EKS` 배포 후 `Kubernetes Deployment/Service/Ingress`로 서비스.
-- 도메인 `server.teamkip.info` 연결.
-
-### 부가 인프라
-- 첨부파일과 문서 이미지 저장에 `Amazon S3` 사용.
-- 문서 검색에 `OpenSearch` 사용.
-- 알림 토큰 저장에 `Redis` 사용.
-- 푸시 알림에 `Firebase` 사용.
-
-### 당시 배포 흐름
-
-```text
-Frontend
-GitHub -> AWS Amplify -> www.teamkip.info
-
-Backend
-GitHub -> GitHub Actions -> Docker Build -> Amazon ECR -> Amazon EKS -> server.teamkip.info
-
-Supporting Services
-S3 / OpenSearch / Redis / Firebase
-```
-
-### 회고
-- 실제 클라우드 환경 배포 경험 확보.
-- 외부 서비스 의존성이 높아 장기적인 `0원 포트폴리오 배포` 구조로는 유지비 부담 존재.
-
----
-
 ## 데모 버전 배포 방향
 
-기존 핵심 기능 유지, 인프라 복잡도 축소 방향 권장.
+`AWS Lightsail 4GB` 단일 인스턴스 배포를 목표로 하되, 이 레포 자체는 먼저 `docker compose up`만으로 단독 실행 가능한 상태로 리팩토링하는 방향.
 
-### 추천 방향
-- `Docker Compose + AWS Lightsail` 기반 단일 서버 배포.
-- `Kubernetes/EKS` 대신 단일 인스턴스 중심 운영.
-- 면접용 데모에 필요한 핵심 시나리오 중심 구성.
+### 핵심 포인트
+- 이 레포 단독 기준 `docker compose up` 가능 상태 우선 구성.
+- 프론트, 백엔드, DB, 파일 저장소, 더미데이터까지 한 번에 기동.
+- 배포용 이미지는 `GitHub Actions`에서 빌드 후 레지스트리로 push.
+- `Lightsail`에서는 인프라 레이어가 이미지 `pull + up -d` 담당.
+- `Caddy`는 단일 인스턴스 내 `n`개 데모 라우팅을 위한 인프라 레이어 책임.
+- 면접용 시연에 필요한 기능만 남기는 경량화 방향.
+- 환경변수 이름은 최대한 통일, 값만 로컬/서버별로 분리.
 
-### 추천 이유
-- 기존 AWS 배포 경험과 자연스럽게 연결되는 흐름.
-- `EKS` 대비 배포 구조와 운영 난이도 대폭 축소.
-- 백엔드, DB, 리버스 프록시를 한 번에 관리 가능한 구조.
-- 데모 준비 속도와 유지 편의성 측면에서 현실적인 선택지.
+### 최종 도메인
+- `vue-spring.sejongclass.kr`
+  - 서비스 진입점
+- `vue-spring-file.sejongclass.kr`
+  - 첨부파일, 에디터 이미지, 프로필 이미지 엔드포인트
 
-### 권장 구성
-- `Nginx` 또는 `Caddy`: 리버스 프록시, 도메인 연결, HTTPS 처리.
-- `Spring Boot`: API 서버 컨테이너.
-- `MariaDB`: 데모 데이터 저장용 DB 컨테이너.
-- `Nuxt`: 정적 빌드 후 웹 서버에서 서빙하거나 별도 컨테이너로 운영.
+### 최종 구성
+#### 이 레포 단독 실행
+- `frontend`
+- `backend`
+- `mariadb`
+- `minio`
+- `dummy data`
+
+#### 인프라 레이어
+- `caddy`
+- `image pull`
+- `docker compose up -d`
+
+```text
+This Repository
+  -> frontend
+  -> backend
+  -> mariadb
+  -> minio
+  -> dummy data seed
+
+Lightsail 4GB
+  -> infra compose
+  -> caddy
+  -> image pull / up -d
+  -> n demo routing
+
+Domain
+  -> vue-spring.sejongclass.kr
+  -> vue-spring-file.sejongclass.kr
+```
+
+### 이 방향을 선택한 이유
+- 기존 `AWS` 배포 경험과 자연스럽게 연결되는 흐름.
+- `EKS` 대비 구조 단순화, 운영 포인트 축소.
+- 이 프로젝트 하나를 빠르게 시연 가능한 형태로 집중 정리 가능.
+- 로컬 검증과 서버 배포 책임을 분리 가능.
+- 홈PC와 `Lightsail` 모두 비슷한 방식으로 재현 가능.
 
 ### 데모용 단순화 기준
-- 검색: `OpenSearch` 대신 DB 기반 검색 또는 제목/본문 단순 검색.
-- 첨부파일: `S3` 대신 로컬 볼륨 기반 저장.
-- 푸시 알림: `Firebase + Redis` 대신 비활성화 또는 인앱 알림만 유지.
-- 배포: `Docker Compose`로 서비스 일괄 기동 및 관리.
+- 공통 목표: 핵심 기능 유지, 외부 의존성 최소화, 재현 가능한 1회성 배포 구조.
+- 검색: `OpenSearch` 제거, DB 기반 단순 검색 유지.
+- 파일 저장: `S3` 제거, `MinIO` 기반 저장으로 단순화.
+- 알림: `Firebase` 제거.
+- 캐시/토큰: `Redis` 제거.
+- 인증: `refresh token` 제거, `access token only` 기준 단순화.
+- 데이터: 관리자 계정과 더미 데이터 자동 주입.
+- 운영: `docker compose up -d` 기준 일괄 기동.
+- 환경 분리: `.env.local`, `.env.server`, `.env.example` 기준 분리.
+- 환경 원칙: 변수명은 최대한 동일, 값만 로컬/서버별로 분리.
 
-### 우선 데모에서 보여줄 시나리오
+### 실행 방식
+#### 로컬 / 단독 실행
+- 이 레포에서 `docker compose --env-file .env.local up -d`
+- `Caddy` 없이도 기동 가능한 구조 우선 구성.
+- 목적: 기능 검증, 더미데이터 포함 데모 상태 재현.
+
+#### 서버 / 배포 실행
+- `GitHub Actions`에서 배포용 이미지 빌드.
+- 이미지 명칭은 고정, 태그만 갱신.
+- 권장 레지스트리: `GHCR`
+- `Lightsail` 인프라 레이어에서 `docker compose --env-file .env.server pull`
+- 이어서 `docker compose --env-file .env.server up -d`
+
+### 리팩토링 우선순위
+1. 이 레포 단독 `docker compose up` 환경 구성
+2. `S3 -> MinIO` 전환
+3. `Firebase`, `Redis` 제거
+4. `refresh token` 흐름 제거
+5. 더미데이터 자동 주입 구성
+6. `GitHub Actions -> 이미지 빌드 -> 레지스트리 push` 방향 정리
+7. `Lightsail` 인프라 레이어용 환경변수, `pull + up -d` 방식 정리
+
+### 운영 기준
+- 인스턴스 사양: `AWS Lightsail 4GB` 고정 운영.
+- 운영 기간: 면접 준비 기간 `2주` 단기 운영, 이후 팀원 모집 시점 `4주` 단기 재오픈.
+- 로컬 실행: `docker compose --env-file .env.local up -d`
+- 서버 실행: `docker compose --env-file .env.server pull` 후 `up -d`
+- 서버 환경변수 실제 값은 인프라 레이어에서 관리.
+
+### 우선 데모 시나리오
 1. 관리자 로그인
 2. 사용자 생성
 3. 그룹 생성 및 사용자 배치
@@ -213,9 +245,9 @@ S3 / OpenSearch / Redis / Firebase
 6. 북마크 및 검색
 
 ### 판단
-- 면접용 데모 관점에서는 좋은 방향.
-- 장기 `0원` 운영 관점에서는 별도 무료 호스팅 구조 검토 필요.
-- `Lightsail`은 데모용 현실적 선택지, `0원 포트폴리오용` 최종 해법과는 구분 필요.
+- 면접용 데모 기준 현실적인 선택지.
+- 짧은 준비 기간에서 재현성과 운영 편의성 확보 가능.
+- 이 프로젝트 단독 시연 기준 최적화 방향.
 
 ---
 
@@ -230,11 +262,11 @@ S3 / OpenSearch / Redis / Firebase
 ## 상세 자료 아카이브
 
 <details>
-<summary><b>조직 구성도 / WBS / 핵심기술</b></summary>
+<summary><b>그룹 구조 / WBS / 핵심기술</b></summary>
 
 <br/>
 
-#### 조직 구성도
+#### 그룹 구조
 <p align="center">
   <img src="https://github.com/beyond-sw-camp/be03-fin-5TEAM-KMS/assets/148752498/66bf55a1-e357-4f2c-8f24-f85c1e895be2">
 </p>
