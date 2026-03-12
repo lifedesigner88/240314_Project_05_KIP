@@ -204,3 +204,94 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
   - `minio`
 - 더미 admin 로그인 응답 확인.
   - `k-1234567890 / 1234`
+
+## 현재 작업 브랜치
+
+- 작업 브랜치.
+  - `feat/demo-compose-local`
+- 원격 push 완료.
+- 최근 커밋.
+  - `252c04b`
+  - `feat: add demo compose runtime`
+- 현재 단계에서는 `PR 생성 없이 브랜치 push만` 유지.
+
+## 이번 리팩터링에서 실제 반영된 내용
+
+- 루트 기준 `compose.yaml` 추가.
+- 기본 환경 파일 추가.
+  - `.env`
+  - `.env.local`
+  - `.env.example`
+  - `.env.server.example`
+- 백엔드 Dockerfile 정리.
+- 프론트 Dockerfile 추가.
+- `MinIO` 호환 업로드 경로 반영.
+- `Firebase`, `Redis` 비활성화용 no-op service 추가.
+- `OpenSearch` 없이 동작 가능한 검색 fallback 반영.
+- `refresh token` 제거 후 `access token only` 구조로 단순화.
+- `Nuxt` 런타임 환경변수 기반 API 주소 사용으로 정리.
+- README와 이 문서 기준도 현재 코드 상태에 맞게 갱신.
+
+## 현재 로컬 기본값
+
+- `.env.local`은 현재 원격 확인용 주소 기준.
+  - `NUXT_PUBLIC_API_BASE_URL=http://100.122.220.121:8080`
+  - `ALLOWED_ORIGINS=http://100.122.220.121:3000`
+  - `STORAGE_PUBLIC_BASE_URL=http://100.122.220.121:9000`
+- 로컬 PC에서 다시 사용할 때는 `localhost` 기준으로 되돌려야 함.
+
+## 현재 풀어야 할 핵심 이슈
+
+### 1. Docker 데몬 충돌
+
+- 현재 서버에는 Docker 데몬이 2개 존재.
+  - system docker
+    - `/usr/bin/dockerd`
+  - snap docker
+    - `snap.docker.dockerd`
+- 이 때문에 다음 증상이 반복됨.
+  - `docker ps` 연결 실패
+  - `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`
+  - 컨테이너 stop 시 `permission denied`
+- 브랜치 문제가 아니라 서버 Docker 런타임 충돌 문제로 판단.
+
+### 2. 재부팅 후 우선 확인할 순서
+
+- 목표.
+  - `system docker`만 정상 사용 가능한 상태로 정리
+- 재부팅 후 사용자에게 안내할 우선 명령.
+  - `sudo snap stop docker`
+  - `sudo snap disable docker`
+  - `sudo systemctl enable --now docker`
+  - `sudo systemctl restart docker`
+  - `docker ps`
+  - `ps -ef | grep -E 'dockerd|containerd'`
+- 가능하면 `dockerd`는 `/usr/bin/dockerd` 한 개만 남는 상태가 바람직.
+- 중요한 기존 snap docker 데이터가 있는지 확정 전까지 `snap remove docker`는 보류.
+
+### 3. compose 재기동 확인
+
+- Docker 데몬 정상화 후 재확인 명령.
+  - `docker compose down --remove-orphans`
+  - `docker compose up -d --build`
+- 기대 결과.
+  - `frontend`
+  - `backend`
+  - `mariadb`
+  - `minio`
+  - `minio-init`
+  - 모두 정상 기동
+
+## 다음 리팩터링 우선순위
+
+1. Docker 데몬 충돌 해소.
+2. `docker compose up -d` 재검증.
+3. 브라우저 접속 주소와 API/CORS 값 재검증.
+4. `.env.local`과 서버용 값 분리 정리 여부 판단.
+5. `GitHub Actions -> GHCR 이미지 빌드/푸시` 구성 시작.
+
+## 주의할 점
+
+- 사용자는 `sudo`가 필요한 명령을 직접 실행하는 방식을 선호.
+- PR은 사용자가 요청할 때만 생성.
+- 현재는 `push만` 유지하는 브랜치 운영 선호.
