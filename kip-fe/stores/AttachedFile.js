@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { getApiBaseUrl } from "~/utils/runtimeConfig";
+
+const BASE_URL = { toString: () => getApiBaseUrl() };
 const user = useUser();
 
 export const useAttachedFile = defineStore("attachedFile", {

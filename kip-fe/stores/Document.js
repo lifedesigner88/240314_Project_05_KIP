@@ -1,7 +1,8 @@
 import {useBookMarks} from "~/stores/BookMarks.js";
 import {useAgreeDocument} from "~/stores/AgreeDocument.js";
+import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL = { toString: () => getApiBaseUrl() };
 const user = useUser();
 const bookmarks = useBookMarks();
 const agreeDocuments = useAgreeDocument()

@@ -5,6 +5,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Component
+@ConditionalOnProperty(name = "app.features.push-enabled", havingValue = "true")
 public class FCMInitializer {
 
 	@Value("${fcm.certification}")

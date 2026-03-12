@@ -1,6 +1,7 @@
 package com.FINAL.KIP.securities;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,74 +15,52 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
-
-//토큰 설정
-
-
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // 권한관리 ROLE_ADMIN 관리자일 때 들어갈 수 있는 페이지 권한관리
+@EnableMethodSecurity(prePostEnabled = true)
 @Configuration
-// pre : 사전, post : 사후, 사전/사후에 인증/권한 검사 어노테이션 사용가능
 public class SecurityConfig implements WebMvcConfigurer {
 
     private final JwtAuthFilter jwtAuthFilter;
-    @Autowired
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    private final List<String> allowedOrigins;
+
+    public SecurityConfig(
+        JwtAuthFilter jwtAuthFilter,
+        @Value("#{'${app.security.allowed-origins:http://localhost:3000,http://localhost:8080}'.split(',')}") List<String> allowedOrigins
+    ) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(request -> {
-                    CorsConfiguration corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.setAllowedOrigins(List.of("http://localhost:8080","http://localhost:3000", "https://www.teamkip.info", "https://server.teamkip.info","http://server.teamkip.info", "https://kip-frontend.d1xpbrasd04qrb.amplifyapp.com")); // NUxt CORS
-                    corsConfiguration.setAllowedMethods(List.of("GET","POST", "PUT","PATCH", "DELETE", "OPTIONS"));
-                    corsConfiguration.setAllowedHeaders(List.of("*"));
-                    corsConfiguration.addExposedHeader("New-Access-Token");
-                    return corsConfiguration;
-                }));
+            .cors(cors -> cors.configurationSource(request -> {
+                CorsConfiguration corsConfiguration = new CorsConfiguration();
+                corsConfiguration.setAllowedOrigins(allowedOrigins);
+                corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                corsConfiguration.setAllowedHeaders(List.of("*"));
+                return corsConfiguration;
+            }));
+
         httpSecurity.httpBasic(basic -> basic.disable())
-                .authorizeHttpRequests(req -> req
-                        .requestMatchers("/user/login").permitAll()
-                        .anyRequest().authenticated())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthFilter, BasicAuthenticationFilter.class);
+            .authorizeHttpRequests(req -> req
+                .requestMatchers("/user/login").permitAll()
+                .requestMatchers("/user/check").permitAll()
+                .requestMatchers("/user/*/id").permitAll()
+                .requestMatchers("/user/*/phone").permitAll()
+                .requestMatchers("/user/*/email").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                .anyRequest().authenticated())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthFilter, BasicAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
-
-
-//    @Bean
-//    public PasswordEncoder passwordEncoder(){
-//        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-//    }
-//
-//    @Bean // Filter
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http.csrf(csrf ->
-//                        csrf.disable()
-//                ).cors(cors ->
-//                        cors.disable()
-//                )
-//                .authorizeHttpRequests(request -> request
-//                        .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-//                        .requestMatchers("/user/login", "/user").permitAll()
-//                        .anyRequest().authenticated()
-//
-//                )
-//
-//                .sessionManagement(session ->
-//                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                )
-//                .addFilterBefore(authFilter, BasicAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
 }

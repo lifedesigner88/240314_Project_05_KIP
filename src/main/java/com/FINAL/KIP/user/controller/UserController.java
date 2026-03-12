@@ -1,9 +1,8 @@
 package com.FINAL.KIP.user.controller;
 
 import com.FINAL.KIP.common.CommonResponse;
-import com.FINAL.KIP.common.firebase.service.FCMService;
+import com.FINAL.KIP.common.firebase.service.PushTokenService;
 import com.FINAL.KIP.document.dto.res.AgreeDocResDto;
-import com.FINAL.KIP.securities.JwtTokenProvider;
 import com.FINAL.KIP.user.dto.req.CreateUserReqDto;
 import com.FINAL.KIP.user.dto.req.LoginReqDto;
 import com.FINAL.KIP.user.dto.req.PasswordChangeRequest;
@@ -26,15 +25,12 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final FCMService fcmService;
+    private final PushTokenService pushTokenService;
 
     @Autowired
-    public UserController(UserService userService, JwtTokenProvider jwtTokenProvider,
-                          FCMService fcmService) {
+    public UserController(UserService userService, PushTokenService pushTokenService) {
         this.userService = userService;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.fcmService = fcmService;
+        this.pushTokenService = pushTokenService;
     }
 
     //    Create
@@ -83,8 +79,9 @@ public class UserController {
     @PostMapping("login") //login은 토큰 사용으로 Map형식으로 받아주어야함 // Map<String, Object>
     public ResponseEntity<CommonResponse> userLogin(@RequestBody LoginReqDto loginReqDto) {
         CommonResponse commonResponse = userService.login(loginReqDto);
-        if (loginReqDto.getToken() != null)
-            fcmService.saveToken(loginReqDto);
+        if (loginReqDto.getToken() != null) {
+            pushTokenService.saveToken(loginReqDto);
+        }
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 

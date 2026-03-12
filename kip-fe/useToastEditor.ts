@@ -1,6 +1,8 @@
 import "@toast-ui/editor/dist/toastui-editor.css";
 import Editor from "@toast-ui/editor";
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { getApiBaseUrl } from "~/utils/runtimeConfig";
+
+const BASE_URL = { toString: () => getApiBaseUrl() };
 
 export const toastEditorInstance = (
     divId: HTMLElement,

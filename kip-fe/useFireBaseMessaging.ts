@@ -1,20 +1,27 @@
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import type { FirebaseApp } from 'firebase/app';
+import { getPublicRuntimeConfig, isPushEnabled } from '~/utils/runtimeConfig';
 
 
-export const useFirebaseMessaging = (firebaseApp: FirebaseApp) => {
+export const useFirebaseMessaging = (firebaseApp: FirebaseApp | null) => {
   let messaging: any; // `messaging` 변수를 조건문 밖에서 선언
-  if (process.client) {
+  if (process.client && firebaseApp && isPushEnabled()) {
     messaging = getMessaging(firebaseApp); // 클라이언트 측에서만 `messaging` 초기화
   }
 
   const fetchFCMToken = async () => {
+    if (!isPushEnabled()) {
+      return null;
+    }
+    if (typeof Notification === 'undefined') {
+      return null;
+    }
     let notificationPermission = Notification.permission;
     if (notificationPermission !== "granted") {
       return;
     }
     if (!messaging) return null; // `messaging`이 초기화되지 않았다면 함수를 종료
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    const vapidKey = getPublicRuntimeConfig().firebaseVapidKey;
     return await getToken(messaging, { vapidKey })
     .then((currentToken) => {
       if (currentToken) {
@@ -31,8 +38,10 @@ export const useFirebaseMessaging = (firebaseApp: FirebaseApp) => {
   };
 
   const onForegroundMessage = async () => {
+    if (!isPushEnabled()) return;
     if (!messaging) return; // `messaging`이 초기화되지 않았다면 함수를 종료
     onMessage(messaging,  (payload : any) => {
+      if (typeof Notification === 'undefined') return;
       console.log('메시지 수락. ', payload);
       new Notification(payload.data.title, {
         body: payload.data.content,

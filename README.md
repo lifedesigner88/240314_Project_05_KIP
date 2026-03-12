@@ -198,18 +198,21 @@ Domain
 ### 데모용 단순화 기준
 - 공통 목표: 핵심 기능 유지, 외부 의존성 최소화, 재현 가능한 1회성 배포 구조.
 - 검색: `OpenSearch` 제거, DB 기반 단순 검색 유지.
-- 파일 저장: `S3` 제거, `MinIO` 기반 저장으로 단순화.
-- 알림: `Firebase` 제거.
-- 캐시/토큰: `Redis` 제거.
+- 파일 저장: `S3` 대신 `MinIO` 기반 저장으로 단순화.
+- 알림: `Firebase` 비활성화.
+- 캐시/토큰: `Redis` 비활성화.
 - 인증: `refresh token` 제거, `access token only` 기준 단순화.
 - 데이터: 관리자 계정과 더미 데이터 자동 주입.
 - 운영: `docker compose up -d` 기준 일괄 기동.
-- 환경 분리: `.env.local`, `.env.server`, `.env.example` 기준 분리.
+- 환경 분리: `.env`, `.env.local`, `.env.server`, `.env.example` 기준 분리.
 - 환경 원칙: 변수명은 최대한 동일, 값만 로컬/서버별로 분리.
 
 ### 실행 방식
 #### 로컬 / 단독 실행
-- 이 레포에서 `docker compose --env-file .env.local up -d`
+- 이 레포에서 `docker compose up -d`
+- `.env`가 기본으로 `.env.local`을 참조
+- 기본 관리자 계정: `k-1234567890 / 1234`
+- 기본 포트: `3000(frontend)`, `8080(backend)`, `9000(minio)`, `9001(minio console)`
 - `Caddy` 없이도 기동 가능한 구조 우선 구성.
 - 목적: 기능 검증, 더미데이터 포함 데모 상태 재현.
 
@@ -217,13 +220,14 @@ Domain
 - `GitHub Actions`에서 배포용 이미지 빌드.
 - 이미지 명칭은 고정, 태그만 갱신.
 - 권장 레지스트리: `GHCR`
+- 서버 환경값은 `.env.server` 파일로 별도 관리.
 - `Lightsail` 인프라 레이어에서 `docker compose --env-file .env.server pull`
 - 이어서 `docker compose --env-file .env.server up -d`
 
 ### 리팩토링 우선순위
 1. 이 레포 단독 `docker compose up` 환경 구성
 2. `S3 -> MinIO` 전환
-3. `Firebase`, `Redis` 제거
+3. `Firebase`, `Redis` 비활성화
 4. `refresh token` 흐름 제거
 5. 더미데이터 자동 주입 구성
 6. `GitHub Actions -> 이미지 빌드 -> 레지스트리 push` 방향 정리
@@ -232,7 +236,7 @@ Domain
 ### 운영 기준
 - 인스턴스 사양: `AWS Lightsail 4GB` 고정 운영.
 - 운영 기간: 면접 준비 기간 `2주` 단기 운영, 이후 팀원 모집 시점 `4주` 단기 재오픈.
-- 로컬 실행: `docker compose --env-file .env.local up -d`
+- 로컬 실행: `docker compose up -d`
 - 서버 실행: `docker compose --env-file .env.server pull` 후 `up -d`
 - 서버 환경변수 실제 값은 인프라 레이어에서 관리.
 

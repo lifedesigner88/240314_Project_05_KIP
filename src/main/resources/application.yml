@@ -2,13 +2,13 @@ spring:
   security:
     user:
       name: user
-      password: password #  PasswordEncoder.encode(password)
+      password: password
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://${DB_HOST}:3306/kip
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mariadb://${DB_HOST:mariadb}:${DB_PORT:3306}/${DB_NAME:kip}
+    username: ${DB_USERNAME:kip}
+    password: ${DB_PASSWORD:kip1234}
 
   jpa:
     database: mysql
@@ -16,33 +16,40 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-      
     show-sql: true
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: 6379
-      password: ${REDIS_PASSWORD}
 
-fcm:
-  certification : kip-fcm-firebase-adminsdk-gm80d-6a9b5bbd58.json
+app:
+  features:
+    push-enabled: ${FEATURE_PUSH_ENABLED:false}
+    search-enabled: ${FEATURE_SEARCH_ENABLED:false}
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:kip-demo-secret-key-please-change-before-production-123456}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:720}
+    issuer: ${JWT_ISSUER:kip-demo}
+  security:
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://127.0.0.1:8080}
+  storage:
+    endpoint: ${STORAGE_ENDPOINT:}
+    public-base-url: ${STORAGE_PUBLIC_BASE_URL:}
+    path-style-access: ${STORAGE_PATH_STYLE_ACCESS:true}
+    auto-create-bucket: ${STORAGE_AUTO_CREATE_BUCKET:true}
 
 cloud:
   aws:
     s3:
-      bucket: kip-s3
+      bucket: ${STORAGE_BUCKET:kip-demo}
     credentials:
-      access-key: ${ACCESS-KEY}
-      secret-key: ${SECRET-KEY}
-      username: ${S3_USERNAME}
-      password: ${S3_PASSWORD}
+      access-key: ${STORAGE_ACCESS_KEY:minioadmin}
+      secret-key: ${STORAGE_SECRET_KEY:minioadmin}
+      username: ${SEARCH_USERNAME:}
+      password: ${SEARCH_PASSWORD:}
     region:
-      static: ap-northeast-2
+      static: ${AWS_REGION:ap-northeast-2}
       auto: false
     stack:
       auto: false
+
 aws:
   os:
-    region: ap-northeast-2
-    endpoint: search-documents-dhcmbpyzm6u4x5mw3pug4tyoga.aos.ap-northeast-2.on.aws
-    service-name : es
+    region: ${SEARCH_REGION:ap-northeast-2}
+    endpoint: ${SEARCH_ENDPOINT:localhost}

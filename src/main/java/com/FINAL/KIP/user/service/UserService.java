@@ -3,14 +3,12 @@ package com.FINAL.KIP.user.service;
 import com.FINAL.KIP.bookmark.repository.BookRepository;
 import com.FINAL.KIP.common.CommonResponse;
 import com.FINAL.KIP.common.aspect.UserAdmin;
-import com.FINAL.KIP.common.firebase.FCMTokenDao;
+import com.FINAL.KIP.common.firebase.service.PushTokenService;
 import com.FINAL.KIP.common.s3.S3Config;
 import com.FINAL.KIP.document.dto.res.AgreeDocResDto;
 import com.FINAL.KIP.request.domain.Request;
 import com.FINAL.KIP.request.repository.RequestRepository;
 import com.FINAL.KIP.securities.JwtTokenProvider;
-import com.FINAL.KIP.securities.refresh.UserRefreshToken;
-import com.FINAL.KIP.securities.refresh.UserRefreshTokenRepository;
 import com.FINAL.KIP.user.domain.User;
 import com.FINAL.KIP.user.dto.req.CreateUserReqDto;
 import com.FINAL.KIP.user.dto.req.LoginReqDto;
@@ -43,10 +41,9 @@ public class UserService {
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder; //비밀번호 암호화
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRefreshTokenRepository userRefreshTokenRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
-    private final FCMTokenDao fcmTokenDao;
+    private final PushTokenService pushTokenService;
     private final RequestRepository requestRepository;
 
     //s3 연결 config
@@ -57,15 +54,22 @@ public class UserService {
     private String bucket;
 
     @Autowired
-    public UserService(UserRepository userRepo, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, UserRefreshTokenRepository userRefreshTokenRepository, BookRepository bookRepository, UserRepository userRepository,
-		FCMTokenDao fcmTokenDao, RequestRepository requestRepository, S3Config s3Config) {
+    public UserService(
+        UserRepository userRepo,
+        PasswordEncoder passwordEncoder,
+        JwtTokenProvider jwtTokenProvider,
+        BookRepository bookRepository,
+        UserRepository userRepository,
+		PushTokenService pushTokenService,
+        RequestRepository requestRepository,
+        S3Config s3Config
+    ) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userRefreshTokenRepository = userRefreshTokenRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
-		this.fcmTokenDao = fcmTokenDao;
+		this.pushTokenService = pushTokenService;
 		this.requestRepository = requestRepository;
 		this.s3Config = s3Config;
 	}
@@ -115,24 +119,16 @@ public class UserService {
         String accessToken = jwtTokenProvider.createAccessToken(
                 String.format("%s:%s", user.getEmployeeId(), user.getRole()));
 
-        String refreshToken = jwtTokenProvider.createRefreshToken();
-        userRefreshTokenRepository.findById(user.getId())
-                .ifPresentOrElse(
-                        kip -> kip.updateUserRefreshToken(refreshToken),
-                        () -> userRefreshTokenRepository.save(new UserRefreshToken(user, refreshToken))
-                );
         Map<String, String> result = new HashMap<>();
         result.put("user_name", user.getName());
         result.put("access_token", accessToken);
-        result.put("refresh_token", refreshToken);
         return new CommonResponse(HttpStatus.OK, "JWT token is created!", result);
     }
 
     @UserAdmin
     public CommonResponse logout() {
         User user = getUserFromAuthentication();
-        userRefreshTokenRepository.deleteById(user.getId());
-        fcmTokenDao.deleteToken(user.getEmployeeId());
+        pushTokenService.deleteToken(user.getEmployeeId());
         return new CommonResponse(HttpStatus.OK, "User Logout SUCCESS!", new UserResDto(user));
     }
 
@@ -208,17 +204,20 @@ public class UserService {
     public String uploadImage(MultipartFile file) throws IOException {
         User user = getAuthenticatedUser();
         String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new IllegalArgumentException("파일 이름이 올바르지 않습니다.");
+        }
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
         metadata.setContentType(file.getContentType());
 
-        user.setProfileImageUrl(s3Config.amazonS3Client().getUrl(bucket, originalFilename).toString());
+        user.setProfileImageUrl(s3Config.buildObjectUrl(originalFilename));
 
         userRepo.save(user);
 
         s3Config.amazonS3Client().putObject(bucket, originalFilename, file.getInputStream(), metadata);
-        return s3Config.amazonS3Client().getUrl(bucket, originalFilename).toString();
+        return s3Config.buildObjectUrl(originalFilename);
     }
 
     // 프로필 이미지 조회

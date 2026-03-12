@@ -76,7 +76,7 @@ public class AttachedFileService {
         AttachedFile attachedFile = new AttachedFile();
         attachedFile.setFileName(originalFilename);
         attachedFile.setFileType(file.getContentType());
-        attachedFile.setFileUrl(s3Config.amazonS3Client().getUrl(bucket, originalFilename).toString());
+        attachedFile.setFileUrl(s3Config.buildObjectUrl(originalFilename));
         attachedFile.setDocumentId(documentId);
 
         attachedFileRepository.save(attachedFile);
@@ -87,7 +87,7 @@ public class AttachedFileService {
 
 
         s3Config.amazonS3Client().putObject(bucket, originalFilename, file.getInputStream(), metadata);
-        return s3Config.amazonS3Client().getUrl(bucket, originalFilename).toString();
+        return s3Config.buildObjectUrl(originalFilename);
     }
 
     //    파일 조회

@@ -1,0 +1,12 @@
+.git
+.github
+.gradle
+.idea
+.local
+build
+kip-fe
+README.md
+AGENTS.md
+HELP.md
+src/main/resources/jwt.yml
+src/main/resources/kip-fcm-firebase-adminsdk-gm80d-6a9b5bbd58.json

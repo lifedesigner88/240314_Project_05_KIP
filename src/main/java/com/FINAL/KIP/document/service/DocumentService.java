@@ -370,7 +370,8 @@ public class DocumentService {
 		metadata.setContentLength(image.getSize());
 		metadata.setContentType(image.getContentType());
 
-		s3Config.amazonS3Client().putObject(bucket, "documentImg/" + saveFilename, image.getInputStream(), metadata);
-		return s3Config.amazonS3Client().getUrl(bucket, "documentImg/" + saveFilename).toString();
-	}
+			String objectKey = "documentImg/" + saveFilename;
+			s3Config.amazonS3Client().putObject(bucket, objectKey, image.getInputStream(), metadata);
+			return s3Config.buildObjectUrl(objectKey);
+		}
 }

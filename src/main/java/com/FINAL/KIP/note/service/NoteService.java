@@ -1,7 +1,7 @@
 package com.FINAL.KIP.note.service;
 
 import com.FINAL.KIP.common.firebase.dto.FCMMessageDto;
-import com.FINAL.KIP.common.firebase.service.FCMService;
+import com.FINAL.KIP.common.firebase.service.MessageService;
 import com.FINAL.KIP.group.domain.GroupRole;
 import com.FINAL.KIP.group.domain.GroupUser;
 import com.FINAL.KIP.group.repository.GroupUserRepository;
@@ -31,15 +31,15 @@ public class NoteService {
 
 	private final UserRepository userRepository;
 	private final GroupUserRepository groupUserRepository;
-	private final FCMService fcmService;
+	private final MessageService messageService;
 	private final NoteRepository noteRepository;
 
 	@Autowired
-	public NoteService(UserRepository userRepository, GroupUserRepository groupUserRepository, FCMService fcmService,
-		NoteRepository noteRepository) {
+	public NoteService(UserRepository userRepository, GroupUserRepository groupUserRepository, MessageService messageService,
+			NoteRepository noteRepository) {
 		this.userRepository = userRepository;
 		this.groupUserRepository = groupUserRepository;
-		this.fcmService = fcmService;
+		this.messageService = messageService;
 		this.noteRepository = noteRepository;
 	}
 
@@ -94,7 +94,7 @@ public class NoteService {
 		FCMMessageDto fcmMessageDtos = FCMMessageDto.of(note.getWriter().getName(),
 			note.getReceiver().getEmployeeId(),
 			note.getMessage());
-		fcmService.sendRefuseRequestMessage(fcmMessageDtos);
+		messageService.sendRefuseRequestMessage(fcmMessageDtos);
 	}
 
 	private void sendNewFCM(List<Note> newRequests) {
@@ -104,7 +104,7 @@ public class NoteService {
 				note.getReceiver().getEmployeeId(),
 				note.getMessage()));
 		}
-		fcmService.sendNewRequestMessage(fcmMessageDtos);
+		messageService.sendNewRequestMessage(fcmMessageDtos);
 	}
 
 	private void sendAgreeFCM(Note note) {
@@ -112,7 +112,7 @@ public class NoteService {
 			note.getReceiver().getEmployeeId(),
 			note.getMessage());
 
-		fcmService.sendAgreeRequestMessage(fcmMessageDto);
+		messageService.sendAgreeRequestMessage(fcmMessageDto);
 	}
 
 	public ResponseEntity<List<NoteGetReqDto>> getAllNote() {

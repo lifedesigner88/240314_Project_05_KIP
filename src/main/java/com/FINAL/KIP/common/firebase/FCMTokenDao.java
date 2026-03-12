@@ -2,12 +2,13 @@ package com.FINAL.KIP.common.firebase;
 
 import com.FINAL.KIP.user.dto.req.LoginReqDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
 @Repository
+@ConditionalOnProperty(name = "app.features.push-enabled", havingValue = "true")
 public class FCMTokenDao {
 
 	private final StringRedisTemplate stringRedisTemplate;

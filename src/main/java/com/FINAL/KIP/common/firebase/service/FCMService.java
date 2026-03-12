@@ -2,22 +2,18 @@ package com.FINAL.KIP.common.firebase.service;
 
 import com.FINAL.KIP.common.firebase.FCMTokenDao;
 import com.FINAL.KIP.common.firebase.dto.FCMMessageDto;
-import com.FINAL.KIP.user.dto.req.LoginReqDto;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(name = "app.features.push-enabled", havingValue = "true")
 public class FCMService implements MessageService {
 
 	private final FCMTokenDao fcmTokenDao;
 
-	@Autowired
 	public FCMService(FCMTokenDao fcmTokenDao) {
 		this.fcmTokenDao = fcmTokenDao;
 	}
@@ -74,14 +70,6 @@ public class FCMService implements MessageService {
 
 	public void send(Message message) {
 		FirebaseMessaging.getInstance().sendAsync(message);
-	}
-
-	public void saveToken(LoginReqDto loginReqDto) {
-		fcmTokenDao.saveToken(loginReqDto);
-	}
-
-	public void deleteToken(String employeeId) {
-		fcmTokenDao.deleteToken(employeeId);
 	}
 
 	private boolean hasKey(String employeeId) {

@@ -1,0 +1,75 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    restart: unless-stopped
+    env_file:
+      - ${APP_ENV_FILE:-.env.local}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    env_file:
+      - ${APP_ENV_FILE:-.env.local}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    restart: "no"
+    env_file:
+      - ${APP_ENV_FILE:-.env.local}
+    depends_on:
+      - minio
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until /usr/bin/mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do
+          echo "Waiting for MinIO...";
+          sleep 2;
+        done;
+        /usr/bin/mc mb --ignore-existing local/$$STORAGE_BUCKET;
+        /usr/bin/mc anonymous set download local/$$STORAGE_BUCKET;
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ${APP_ENV_FILE:-.env.local}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./kip-fe
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ${APP_ENV_FILE:-.env.local}
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  mariadb_data:
+  minio_data:

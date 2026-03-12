@@ -9,6 +9,7 @@
 - 2차 목표는 배포용 이미지를 `GitHub Actions`로 빌드 후 레지스트리에 push하는 구조 구성.
 - 서버 배포는 인프라 레이어가 이미지 `pull + up -d` 담당.
 - 로컬과 서버 모두 변수명은 최대한 동일, 값만 `.env`로 분리.
+- 로컬 기본 실행은 `.env -> .env.local` 기준 `docker compose up -d`.
 
 ## PR 운영 규칙
 
@@ -36,8 +37,8 @@
 ## 데모용 단순화 목표
 
 - `OpenSearch` 제거.
-- `Firebase` 제거.
-- `Redis` 제거.
+- `Firebase` 비활성화.
+- `Redis` 비활성화.
 - `refresh token` 제거.
 - `access token only` 기준 인증 단순화.
 - 관리자 계정과 더미 데이터 자동 주입 유지.
@@ -47,7 +48,7 @@
 ### 1단계. 이 레포 단독 compose
 
 - 목표.
-  - 레포를 clone 후 `docker compose --env-file .env.local up -d`로 전체 스택 기동.
+  - 레포를 clone 후 `docker compose up -d`로 전체 스택 기동.
 - 포함 대상.
   - `frontend`
   - `backend`
@@ -90,6 +91,7 @@
 
 현재 구조는 `fileUrl`을 직접 저장하고 URL을 그대로 반환하는 방식.
 데모 기준 최소 수정 방향은 `S3 -> MinIO` 호환 방식 유지.
+외부 노출 URL은 `STORAGE_PUBLIC_BASE_URL` 기준으로 분리.
 
 ### Redis / Firebase 관계
 
@@ -100,7 +102,7 @@
   - `src/main/java/com/FINAL/KIP/common/firebase/FCMInitializer.java`
   - `src/main/java/com/FINAL/KIP/common/redis/RedisConfig.java`
 
-데모에서는 `Firebase`, `Redis` 모두 제거 대상.
+데모에서는 `Firebase`, `Redis` 모두 비활성화 대상.
 
 ### refresh token 상태
 
@@ -130,8 +132,10 @@
 - 변수명은 최대한 동일하게 유지.
 - 값만 로컬과 서버에서 다르게 설정.
 - 이 레포.
+  - `.env`
   - `.env.example`
   - `.env.local`
+  - `.env.server.example`
 - 인프라 레이어.
   - `.env.server`
 - 서버 실제 값은 인프라 레이어가 보관.
@@ -139,11 +143,11 @@
 
 예시 방향.
 - 로컬.
-  - `PUBLIC_API_BASE_URL=http://localhost:8080`
-  - `PUBLIC_FILE_BASE_URL=http://localhost:9000`
+  - `NUXT_PUBLIC_API_BASE_URL=http://localhost:8080`
+  - `STORAGE_PUBLIC_BASE_URL=http://localhost:9000`
 - 서버.
-  - `PUBLIC_API_BASE_URL=https://vue-spring.sejongclass.kr/api`
-  - `PUBLIC_FILE_BASE_URL=https://vue-spring-file.sejongclass.kr`
+  - `NUXT_PUBLIC_API_BASE_URL=https://vue-spring.sejongclass.kr/api`
+  - `STORAGE_PUBLIC_BASE_URL=https://vue-spring-file.sejongclass.kr`
 
 ### CORS
 
@@ -159,7 +163,7 @@
 - 관련 파일.
   - `Dockerfile`
 
-Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용 검토 필요.
+Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 
 ## 데모 기준 권장 구성
 
@@ -173,7 +177,7 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용 �
 
 1. 이 레포 단독 `docker compose` 서비스 구조 설계.
 2. `S3 -> MinIO` 전환.
-3. `Firebase`, `Redis` 제거.
+3. `Firebase`, `Redis` 비활성화.
 4. `refresh token` 제거.
 5. `CORS`, 도메인, 환경변수 정리.
 6. 더미 데이터와 관리자 계정 자동 주입 확인.
@@ -188,3 +192,15 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용 �
 4. 문서 작성 및 수정
 5. 권한 요청 및 승인
 6. 북마크 및 검색
+
+## 현재 검증 상태
+
+- `docker compose build backend frontend` 통과.
+- `docker compose up -d` 통과.
+- 확인된 컨테이너.
+  - `frontend`
+  - `backend`
+  - `mariadb`
+  - `minio`
+- 더미 admin 로그인 응답 확인.
+  - `k-1234567890 / 1234`
