@@ -141,18 +141,42 @@ export const useGroup = defineStore("group", {
         },
 
         async setMyGroupsInfo() {
-            const response =
-                await fetch(`${BASE_URL}/group/mygroups`, {
-                    method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
-                });
-            this.myGroupsInfo = await response.json();
+            const accessToken = getUserStore().getAccessToken;
+            if (!accessToken) {
+                this.myGroupsInfo = [];
+                return;
+            }
+
+            try {
+                const response =
+                    await fetch(`${BASE_URL}/group/mygroups`, {
+                        method: 'GET',
+                        headers: {'Authorization': 'Bearer ' + accessToken},
+                    });
+
+                if (!response.ok) {
+                    this.myGroupsInfo = [];
+                    return;
+                }
+
+                const data = await response.json();
+                this.myGroupsInfo = Array.isArray(data) ? data : [];
+            } catch (e) {
+                this.myGroupsInfo = [];
+                console.log(e, "내 그룹 목록 조회 실패");
+            }
         },
         async setHierarchyInfo() {
+            const accessToken = getUserStore().getAccessToken;
+            if (!accessToken) {
+                this.HierarchyInfo = [];
+                return;
+            }
+
             const response =
                 await fetch(`${BASE_URL}/group/hierarchy/1`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + accessToken},
                 });
 
             if (response.ok) {
@@ -162,6 +186,8 @@ export const useGroup = defineStore("group", {
                 listInfo.push(objectInfo);
 
                 this.HierarchyInfo = listInfo;
+            } else {
+                this.HierarchyInfo = [];
             }
         },
         async setGroupUsersInfo(groupId) {

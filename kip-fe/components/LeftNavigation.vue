@@ -14,11 +14,15 @@ const group = useGroup();
 const notification = useNotifications();
 
 onMounted(async () => {
-  await group.setMyGroupsInfo();  // (awit) 그룹정보를 모두 가지고 온뒤 넘어감
+  if (useUser().getAccessToken) {
+    await group.setMyGroupsInfo();  // (awit) 그룹정보를 모두 가지고 온뒤 넘어감
+  }
 })
 
 // 새로고침
 const refresh = async () => {
+  if (!useUser().getAccessToken) return;
+
   await group.setMyGroupsInfo()
   await group.setHierarchyInfo();
   await notification.setMyNotification();

@@ -36,6 +36,8 @@ watch(dialog, (isOpen) => {
 
 // 기본데이터 로그인 후 불러오기. (최초 그룹 로딩속도 향상)
 onMounted(async () => {
+  if (!user.getAccessToken) return;
+
   await group.setHierarchyInfo();
   await notification.setMyNotification();
 })

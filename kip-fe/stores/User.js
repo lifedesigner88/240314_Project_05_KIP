@@ -185,20 +185,35 @@ export const useUser = defineStore("user", {
         async setUserInfoAndTokenToPiniaFromLocalStorage() {
             if (typeof window !== "undefined") {
                 this.accessToken = window.localStorage.getItem('accessToken');
-                if (this.accessToken)
-                    try {
-                        const response =
-                            await fetch(`${BASE_URL}/user/mypage`, {
-                                method: 'GET',
-                                headers: {'Authorization': 'Bearer ' + this.accessToken}
-                            });
-                        const userInfoRes = await response.json();
-                        this.userInfo = userInfoRes.result;
-                        this.isLoggedIn = true;
-                    } catch (e) {
-                        console.log(e, '유저정보 가져오기 실패')
+                if (!this.accessToken) {
+                    this.isLoggedIn = false;
+                    return;
+                }
+
+                try {
+                    const response =
+                        await fetch(`${BASE_URL}/user/mypage`, {
+                            method: 'GET',
+                            headers: {'Authorization': 'Bearer ' + this.accessToken}
+                        });
+
+                    if (!response.ok) {
+                        this.$reset();
+                        window.localStorage.removeItem('accessToken');
+                        return;
                     }
-                await useRouter().push('/publicOpenDoc');
+
+                    const userInfoRes = await response.json();
+                    this.userInfo = userInfoRes.result;
+                    this.isLoggedIn = true;
+
+                    if (useRoute().path === '/')
+                        await useRouter().push('/publicOpenDoc');
+                } catch (e) {
+                    this.$reset();
+                    window.localStorage.removeItem('accessToken');
+                    console.log(e, '유저정보 가져오기 실패')
+                }
             }
         },
         async deleteUser(employeeId, name) {

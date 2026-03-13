@@ -5,11 +5,11 @@
 ## 최종 목표
 
 - `AWS Lightsail 4GB` 단일 인스턴스에서 이 프로젝트 하나를 실행.
-- 1차 목표는 이 레포 단독으로 `docker compose --env-file .env.example up -d` 가능 상태 구성.
+- 1차 목표는 이 레포 단독으로 `docker compose up -d` 가능 상태 구성.
 - 2차 목표는 배포용 이미지를 `GitHub Actions`로 빌드 후 레지스트리에 push하는 구조 구성.
 - 서버 배포는 인프라 레이어가 이미지 `pull + up -d` 담당.
-- 로컬과 서버 모두 변수명은 최대한 동일하게 유지하고, 루트 `.env.example` 한 파일에서 함께 관리.
-- 기본 실행은 `docker compose --env-file .env.example up -d` 기준.
+- 로컬과 서버 모두 기본 데모값은 코드와 compose에 고정한다.
+- 기본 실행은 `docker compose up -d` 기준.
 
 ## PR 운영 규칙
 
@@ -23,8 +23,8 @@
 
 - 서비스 도메인.
   - `vue-spring.huposit.kr`
-- 파일 도메인.
-  - `vue-spring-s3.huposit.kr`
+- 파일 공개 경로.
+  - `https://vue-spring.huposit.kr/storage`
 - 프론트도 Docker 컨테이너에 포함.
 - 파일 저장소는 `MinIO`.
 - 이 레포 단독 compose에는 `Caddy`를 포함하지 않음.
@@ -48,12 +48,12 @@
 ### 1단계. 이 레포 단독 compose
 
 - 목표.
-  - 레포를 clone 후 `docker compose --env-file .env.example up -d`로 전체 스택 기동.
+  - 레포를 clone 후 `docker compose up -d`로 전체 스택 기동.
 - 포함 대상.
-  - `frontend`
-  - `backend`
-  - `mariadb`
-  - `minio`
+  - `kip-frontend`
+  - `kip-backend`
+  - `kip-mariadb`
+  - `kip-minio`
   - `dummy data seed`
 - 제외 대상.
   - `Caddy`
@@ -68,10 +68,8 @@
   - 이 레포.
     - Dockerfile
     - 앱 코드
-    - `.env.example`
     - 이미지 빌드 workflow
   - 인프라 레이어.
-    - `.env.example`
     - compose 실행
     - 이미지 pull
     - 컨테이너 재기동
@@ -125,13 +123,13 @@
   - `kip-fe/package.json`
   - `kip-fe/stores/User.js`
 
-도메인과 API 주소는 루트 `.env.example` 기준으로 관리하는 방향.
+도메인과 API 주소는 코드와 compose 기본값 기준으로 관리한다.
 
 ## 환경변수 원칙
 
 - 변수명은 최대한 동일하게 유지.
-- compose 변수와 런타임 변수를 루트 `.env.example` 하나에 같이 둔다.
-- 서버 실제 값도 현재는 별도 비밀키 분리 없이 `.env.example` 기준으로 관리한다.
+- compose 변수와 런타임 변수는 기본적으로 코드와 compose에 고정한다.
+- 서버 실제 값도 현재는 별도 비밀키 분리 없이 코드와 compose 기본값 기준으로 관리한다.
 - 프론트 공개 변수와 백엔드 비밀 변수는 분리 관리.
 
 예시 방향.
@@ -140,7 +138,7 @@
   - `STORAGE_PUBLIC_BASE_URL=http://localhost:9000`
 - 서버.
   - `NUXT_PUBLIC_API_BASE_URL=https://vue-spring.huposit.kr/api`
-  - `STORAGE_PUBLIC_BASE_URL=https://vue-spring-s3.huposit.kr`
+  - `STORAGE_PUBLIC_BASE_URL=https://vue-spring.huposit.kr/storage`
 
 ### CORS
 
@@ -160,10 +158,10 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 
 ## 데모 기준 권장 구성
 
-- `frontend`
-- `backend`
-- `mariadb`
-- `minio`
+- `kip-frontend`
+- `kip-backend`
+- `kip-mariadb`
+- `kip-minio`
 - `dummy data seed`
 
 ## 우선 리팩토링 순서
@@ -188,13 +186,13 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 
 ## 현재 검증 상태
 
-- `docker compose build backend frontend` 통과.
-- `docker compose --env-file .env.example up -d` 통과.
+- `docker compose build kip-backend kip-frontend` 통과.
+- `docker compose up -d` 통과.
 - 확인된 컨테이너.
-  - `frontend`
-  - `backend`
-  - `mariadb`
-  - `minio`
+  - `kip-frontend`
+  - `kip-backend`
+  - `kip-mariadb`
+  - `kip-minio`
 - 더미 admin 로그인 응답 확인.
   - `asm-1234 / 1234`
 
@@ -211,8 +209,7 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 ## 이번 리팩터링에서 실제 반영된 내용
 
 - 루트 기준 `compose.yaml` 추가.
-- 기본 환경 파일 정리.
-  - `.env.example`
+- 기본 환경값 코드/compose 고정
 - 백엔드 Dockerfile 정리.
 - 프론트 Dockerfile 추가.
 - `MinIO` 호환 업로드 경로 반영.
@@ -248,13 +245,7 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 
 ## 현재 기본값
 
-- 루트 `.env.example`은 현재 로컬 `localhost` 기준.
-  - `NUXT_PUBLIC_API_BASE_URL=http://localhost:8080`
-  - `ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://vue-spring.huposit.kr,https://huposit.kr,https://www.huposit.kr`
-  - `STORAGE_PUBLIC_BASE_URL=http://localhost:9000`
-  - `SPRING_JPA_SHOW_SQL=false`
-  - `SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=false`
-- 서버 배포 전에는 위 3개 값을 `huposit.kr` 도메인 기준으로 교체한다.
+- `/api`, `/storage`, DB/MinIO 접속값, 데모 플래그, CORS 기본값, JVM 메모리, GHCR 이미지명은 코드와 compose/workflow에 고정한다.
 
 ## 더미데이터 계정 메모
 
@@ -315,21 +306,21 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 
 - Docker 데몬 정상화 후 재확인 명령.
   - `docker compose down --remove-orphans`
-  - `docker compose --env-file .env.example up -d --build`
+  - `docker compose up -d --build`
 - 기대 결과.
-  - `frontend`
-  - `backend`
-  - `mariadb`
-  - `minio`
+  - `kip-frontend`
+  - `kip-backend`
+  - `kip-mariadb`
+  - `kip-minio`
   - `minio-init`
   - 모두 정상 기동
 
 ## 다음 리팩터링 우선순위
 
 1. Docker 데몬 충돌 해소.
-2. `docker compose --env-file .env.example up -d` 재검증.
+2. `docker compose up -d` 재검증.
 3. 브라우저 접속 주소와 API/CORS 값 재검증.
-4. 루트 `.env.example` 단일 기준 유지 여부 점검.
+4. 기본값 코드 고정 상태 유지 여부 점검.
 5. `GitHub Actions -> GHCR 이미지 빌드/푸시` 구성 시작.
 
 ## GHCR / Demo Workflow 메모
@@ -340,13 +331,12 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
   - `demo` 브랜치 push
   - `workflow_dispatch`
 - 기본 이미지명.
-  - `ghcr.io/<owner>/kip-demo-backend:demo`
-  - `ghcr.io/<owner>/kip-demo-frontend:demo`
+  - `ghcr.io/<owner>/kip-backend:demo`
+  - `ghcr.io/<owner>/kip-frontend:demo`
 - workflow 책임.
   - GHCR push까지만 수행
   - 서버 `pull + up -d`는 인프라 레이어에서 실행
 - 인프라 compose용 파일.
-  - `.env.example`
   - `infra-handoff/compose.yaml`
 
 ## SQL 시드 프롬프트 메모

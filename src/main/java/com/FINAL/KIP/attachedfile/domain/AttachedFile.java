@@ -18,7 +18,7 @@ public class AttachedFile extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(nullable = false)
     private String fileName;
     private String fileType;
     private String fileUrl;

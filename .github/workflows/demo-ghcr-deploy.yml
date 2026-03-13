@@ -27,8 +27,8 @@ jobs:
         run: |
           OWNER_LOWER="${GITHUB_REPOSITORY_OWNER,,}"
           echo "image_namespace=${OWNER_LOWER}" >> "$GITHUB_OUTPUT"
-          echo "backend_image=ghcr.io/${OWNER_LOWER}/kip-demo-backend" >> "$GITHUB_OUTPUT"
-          echo "frontend_image=ghcr.io/${OWNER_LOWER}/kip-demo-frontend" >> "$GITHUB_OUTPUT"
+          echo "backend_image=ghcr.io/${OWNER_LOWER}/kip-backend" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=ghcr.io/${OWNER_LOWER}/kip-frontend" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

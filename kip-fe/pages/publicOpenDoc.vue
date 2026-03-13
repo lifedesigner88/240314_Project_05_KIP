@@ -702,7 +702,7 @@ onKeyStroke(['Enter'], () => {
             <v-card-text>
               <v-card
                   v-for="file in attachedFile.getAttachedFileList"
-                  :key="file.fileName"
+                  :key="file.id"
                   class="my-3"
                   color="blue-lighten-1"
                   variant="outlined"

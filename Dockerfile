@@ -11,6 +11,7 @@ RUN gradle --no-daemon bootJar
 FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
+ENV JAVA_TOOL_OPTIONS="-Xms256m -Xmx512m"
 
 COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
 

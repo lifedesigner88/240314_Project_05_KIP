@@ -6,8 +6,8 @@ export default defineNuxtConfig({
     css: ['~/assets/styles/global.css'],
     runtimeConfig: {
         public: {
-            apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
-            pushEnabled: process.env.NUXT_PUBLIC_PUSH_ENABLED || 'false',
+            apiBaseUrl: '/api',
+            pushEnabled: false,
             firebaseApiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY || '',
             firebaseAppId: process.env.NUXT_PUBLIC_FIREBASE_APP_ID || '',
             firebaseAuthDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
@@ -53,8 +53,14 @@ export default defineNuxtConfig({
     },
     nitro: {
         routeRules: {
+            '/api/**': {
+                proxy: 'http://kip-backend:8080/**',
+            },
+            '/storage/**': {
+                proxy: 'http://kip-minio:9000/**',
+            },
             // toast-ui editor 가 SSR 을 지원하지 않아 reload시 에러가 나는것을 방지
-            "editor/toast": {
+            "/editor/toast": {
                 ssr: false,
             },
         },

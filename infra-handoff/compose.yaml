@@ -1,44 +1,50 @@
-name: ${COMPOSE_PROJECT_NAME:-kip-demo}
+name: kip-demo
 
 services:
-  mariadb:
-    image: ${MARIADB_IMAGE:-mariadb:11.4}
+  kip-mariadb:
+    image: mariadb:11.4
     restart: unless-stopped
-    env_file:
-      - ../.env.example
+    environment:
+      MARIADB_DATABASE: kip
+      MARIADB_USER: kip
+      MARIADB_PASSWORD: demo-password
+      MARIADB_ROOT_PASSWORD: demo-root-password
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD --silent"]
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -pdemo-root-password --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
 
-  minio:
-    image: ${MINIO_IMAGE:-minio/minio:latest}
+  kip-minio:
+    image: minio/minio:latest
     restart: unless-stopped
-    env_file:
-      - ../.env.example
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     ports:
-      - "${MINIO_API_HOST_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
 
   minio-init:
-    image: ${MINIO_MC_IMAGE:-minio/mc:latest}
+    image: minio/mc:latest
     restart: "no"
-    env_file:
-      - ../.env.example
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      STORAGE_BUCKET: kip-demo
     depends_on:
-      - minio
+      - kip-minio
     entrypoint:
       - /bin/sh
       - -c
       - |
-        until /usr/bin/mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do
+        until /usr/bin/mc alias set local http://kip-minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do
           echo "Waiting for MinIO...";
           sleep 2;
         done;
@@ -46,14 +52,17 @@ services:
         /usr/bin/mc anonymous set download local/$$STORAGE_BUCKET;
 
   db-seed:
-    image: ${DB_SEED_IMAGE:-mariadb:11.4}
+    image: mariadb:11.4
     restart: "no"
-    env_file:
-      - ../.env.example
+    environment:
+      DB_PORT: 3306
+      DB_USERNAME: kip
+      DB_PASSWORD: demo-password
+      DB_NAME: kip
     depends_on:
-      mariadb:
+      kip-mariadb:
         condition: service_healthy
-      backend:
+      kip-backend:
         condition: service_healthy
     volumes:
       - ./seed-rich.sql:/seed-rich.sql:ro
@@ -61,23 +70,22 @@ services:
       - /bin/sh
       - -ec
       - |
-        until [ "$$(mariadb -hmariadb -P$$DB_PORT -u$$DB_USERNAME -p$$DB_PASSWORD $$DB_NAME -N -s 2>/dev/null -e "SELECT CASE WHEN EXISTS (SELECT 1 FROM \`user\` WHERE employee_id = 'asm-1234') AND EXISTS (SELECT 1 FROM \`group\` WHERE group_name = 'AI SW 마에스트로') AND EXISTS (SELECT 1 FROM document WHERE title = '데모 사용 가이드' AND group_id IS NULL) THEN 1 ELSE 0 END;")" = "1" ]; do
-          echo "Waiting for backend base seed...";
+        until [ "$$(mariadb -hkip-mariadb -P$$DB_PORT -u$$DB_USERNAME -p$$DB_PASSWORD $$DB_NAME -N -s 2>/dev/null -e "SELECT CASE WHEN EXISTS (SELECT 1 FROM \`user\` WHERE employee_id = 'asm-1234') AND EXISTS (SELECT 1 FROM \`group\` WHERE group_name = 'AI SW 마에스트로') AND EXISTS (SELECT 1 FROM document WHERE title = '데모 사용 가이드' AND group_id IS NULL) THEN 1 ELSE 0 END;")" = "1" ]; do
+          echo "Waiting for kip-backend base seed...";
           sleep 2;
         done;
-        if [ "$$(mariadb -hmariadb -P$$DB_PORT -u$$DB_USERNAME -p$$DB_PASSWORD $$DB_NAME -N -s 2>/dev/null -e "SELECT CASE WHEN EXISTS (SELECT 1 FROM \`version\` WHERE message = 'seed-rich v1') THEN 1 ELSE 0 END;")" = "1" ]; then
+        if [ "$$(mariadb -hkip-mariadb -P$$DB_PORT -u$$DB_USERNAME -p$$DB_PASSWORD $$DB_NAME -N -s 2>/dev/null -e "SELECT CASE WHEN EXISTS (SELECT 1 FROM \`version\` WHERE message = 'seed-rich v1') THEN 1 ELSE 0 END;")" = "1" ]; then
           echo "seed-rich data already present. Skipping.";
           exit 0;
         fi;
-        mariadb -hmariadb -P$$DB_PORT -u$$DB_USERNAME -p$$DB_PASSWORD $$DB_NAME < /seed-rich.sql
+        mariadb -hkip-mariadb -P$$DB_PORT -u$$DB_USERNAME -p$$DB_PASSWORD $$DB_NAME < /seed-rich.sql
 
-  backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/lifedesigner88/kip-demo-backend:demo}
+  kip-backend:
+    image: ghcr.io/lifedesigner88/kip-backend:demo
+    pull_policy: always
     restart: unless-stopped
-    env_file:
-      - ../.env.example
     depends_on:
-      mariadb:
+      kip-mariadb:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
@@ -92,20 +100,19 @@ services:
       retries: 20
       start_period: 15s
     ports:
-      - "${BACKEND_HOST_PORT:-8080}:${BACKEND_CONTAINER_PORT:-8080}"
+      - "8080:8080"
 
-  frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/lifedesigner88/kip-demo-frontend:demo}
+  kip-frontend:
+    image: ghcr.io/lifedesigner88/kip-frontend:demo
+    pull_policy: always
     restart: unless-stopped
-    env_file:
-      - ../.env.example
     depends_on:
-      backend:
+      kip-backend:
         condition: service_healthy
       db-seed:
         condition: service_completed_successfully
     ports:
-      - "${FRONTEND_HOST_PORT:-3000}:${FRONTEND_CONTAINER_PORT:-3000}"
+      - "3000:3000"
 
 volumes:
   mariadb_data:

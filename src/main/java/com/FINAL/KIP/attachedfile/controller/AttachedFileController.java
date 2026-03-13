@@ -59,6 +59,16 @@ public class AttachedFileController {
         }
     }
 
+    @GetMapping("/file/{fileId}/download")
+    public ResponseEntity<byte[]> downloadFileById(@PathVariable Long fileId) throws IOException {
+        try {
+            return attachedFileService.downloadFileById(fileId);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("파일 다운로드 중 오류가 발생했습니다: " + e.getMessage()).getBytes());
+        }
+    }
+
     // 파일 삭제
     @DeleteMapping("/file/{fileId}")
     public String deleteFile(@PathVariable Long fileId) {

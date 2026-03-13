@@ -3,12 +3,14 @@ spring:
     user:
       name: user
       password: password
+  profiles:
+    active: demo
 
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://${DB_HOST:mariadb}:${DB_PORT:3306}/${DB_NAME:kip}
-    username: ${DB_USERNAME:kip}
-    password: ${DB_PASSWORD:kip1234}
+    url: jdbc:mariadb://kip-mariadb:3306/kip
+    username: kip
+    password: demo-password
 
   jpa:
     database: mysql
@@ -16,43 +18,43 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    show-sql: false
     properties:
       hibernate:
-        format_sql: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:true}
+        format_sql: false
 
 app:
   features:
-    push-enabled: ${FEATURE_PUSH_ENABLED:false}
-    search-enabled: ${FEATURE_SEARCH_ENABLED:false}
+    push-enabled: false
+    search-enabled: false
   jwt:
-    secret-key: ${JWT_SECRET_KEY:kip-demo-secret-key-please-change-before-production-123456}
-    expiration-minutes: ${JWT_EXPIRATION_MINUTES:720}
-    issuer: ${JWT_ISSUER:kip-demo}
+    secret-key: demo-jwt-secret-key-for-interview-only
+    expiration-minutes: 720
+    issuer: kip-demo
   security:
-    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://127.0.0.1:8080}
+    allowed-origins: http://localhost:3000,https://vue-spring.huposit.kr
   storage:
-    endpoint: ${STORAGE_ENDPOINT:}
-    public-base-url: ${STORAGE_PUBLIC_BASE_URL:}
-    path-style-access: ${STORAGE_PATH_STYLE_ACCESS:true}
-    auto-create-bucket: ${STORAGE_AUTO_CREATE_BUCKET:true}
+    endpoint: http://kip-minio:9000
+    public-base-url: /storage
+    path-style-access: true
+    auto-create-bucket: true
 
 cloud:
   aws:
     s3:
-      bucket: ${STORAGE_BUCKET:kip-demo}
+      bucket: kip-demo
     credentials:
-      access-key: ${STORAGE_ACCESS_KEY:minioadmin}
-      secret-key: ${STORAGE_SECRET_KEY:minioadmin}
+      access-key: minioadmin
+      secret-key: minioadmin
       username: ${SEARCH_USERNAME:}
       password: ${SEARCH_PASSWORD:}
     region:
-      static: ${AWS_REGION:ap-northeast-2}
+      static: ap-northeast-2
       auto: false
     stack:
       auto: false
 
 aws:
   os:
-    region: ${SEARCH_REGION:ap-northeast-2}
+    region: ap-northeast-2
     endpoint: ${SEARCH_ENDPOINT:localhost}
