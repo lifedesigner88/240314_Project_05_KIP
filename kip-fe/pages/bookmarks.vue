@@ -1,6 +1,6 @@
 <script setup>
 import {toastViewerInstance} from "~/useToastViewer";
-import {ref} from "vue";
+import {nextTick, onUnmounted, ref} from "vue";
 
 const route = useRoute();
 const groupId = route.params.groupId;
@@ -10,13 +10,32 @@ groupName.TopNaviGroupList = ["Knowledge is Power", "즐겨찾기 ⭐"];
 const documentList = useDocumentList();
 const attachedFile = useAttachedFile();
 const toastViewer = ref();
+let viewerInstance = null;
 const bookmarks = useBookMarks();
 
 
 const UpdateToastViewer = async () => {
-  toastViewerInstance(
+  if (bookmarks.myBookMarks.length === 0) {
+    viewerInstance?.destroy?.();
+    viewerInstance = null;
+    return;
+  }
+
+  await nextTick();
+
+  if (!toastViewer.value) {
+    return;
+  }
+
+  const content = documentList.getSelectedDocContent ?? '';
+  if (viewerInstance?.setMarkdown) {
+    viewerInstance.setMarkdown(content);
+    return;
+  }
+
+  viewerInstance = toastViewerInstance(
       toastViewer.value,
-      documentList.getSelectedDocContent
+      content
   );
 }
 
@@ -77,6 +96,10 @@ onKeyStroke(['R', 'r'], () => {
   if (alt.value) ResetHasTagAddAndFiltering();
 })
 
+onUnmounted(() => {
+  viewerInstance?.destroy?.();
+  viewerInstance = null;
+})
 
 
 </script>

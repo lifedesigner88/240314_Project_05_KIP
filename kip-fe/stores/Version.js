@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useVersion = defineStore("version", {
   state() {
@@ -33,7 +33,7 @@ export const useVersion = defineStore("version", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         this.versions = await response.json();
       } catch (error) {
@@ -46,7 +46,7 @@ export const useVersion = defineStore("version", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         const data = await response.json()
         this.versionDetail = data.content;
@@ -59,7 +59,7 @@ export const useVersion = defineStore("version", {
         const response = await fetch(`${BASE_URL}/doc/${versionId}`, {
           method: 'PATCH',
           headers: {
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         const data = await response.json()
         this.versionDetail = data.content;

@@ -21,6 +21,7 @@ const color = useColor();
 const group = useGroup();
 const groupUser = useGroupuser();
 const document = useDocumentList()
+const documentSearch = useDocumentSearch();
 
 const notification = useNotifications();
 await notification.setMyNotification();
@@ -29,6 +30,12 @@ await notification.setMyNotification();
 const handleRailClick = () => {
   rail.value = !rail.value;
 }
+
+watch(dialog, (isOpen) => {
+  if (!isOpen) {
+    documentSearch.resetSearch();
+  }
+});
 
 // 기본데이터 로그인 후 불러오기. (최초 그룹 로딩속도 향상)
 onMounted(async () => {
@@ -123,6 +130,7 @@ onKeyStroke(['L', 'l'], () => {
         </template>
         <template #default>
           <SearchModal
+              :is-open="dialog"
               @closeModal="dialog = false"
           />
         </template>

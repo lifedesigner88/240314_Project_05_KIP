@@ -18,6 +18,8 @@ const request = useRequest();
 const loading = ref(false);
 const clickedGroupId = ref(1);
 const employedDay = ref()
+const openedGroupIds = ref([]);
+const hasInitializedTreeOpenState = ref(false);
 
 // 모달 관련 데이터
 const addNewMemberModdal = ref();
@@ -314,6 +316,38 @@ const confirmRequest = async () => {
   sendRequestModal.value = false;
 }
 
+const collectOpenedGroupIds = (items, maxDepth, depth = 0) => {
+  if (!Array.isArray(items) || depth > maxDepth) {
+    return [];
+  }
+
+  return items.flatMap((item) => {
+    if (!item?.children?.length) {
+      return [];
+    }
+
+    return [
+      item.id,
+      ...collectOpenedGroupIds(item.children, maxDepth, depth + 1),
+    ];
+  });
+};
+
+watch(
+  () => group.getHierarchyInfo,
+  async (items) => {
+    if (hasInitializedTreeOpenState.value || !items?.length) {
+      return;
+    }
+
+    const initialOpenedIds = [...new Set(collectOpenedGroupIds(items, 1))];
+    await nextTick();
+    openedGroupIds.value = initialOpenedIds;
+    hasInitializedTreeOpenState.value = true;
+  },
+  { immediate: true, deep: true }
+);
+
 </script>
 <template>
 
@@ -327,9 +361,14 @@ const confirmRequest = async () => {
         <v-card
             elevation="5"
             rounded="xl">
-          <v-card-text>
+          <v-card-text class="tree-panel-scroll">
             <v-treeview
                 :items="group.getHierarchyInfo"
+                item-title="title"
+                item-children="children"
+                item-value="id"
+                :opened="openedGroupIds"
+                @update:opened="openedGroupIds = $event"
                 color="blue">
               <template v-slot:prepend="{ item }">
                 <v-icon
@@ -421,7 +460,7 @@ const confirmRequest = async () => {
                   </v-radio-group>
                   <v-text-field
                       label="신규 그룹 이름"
-                      placeholder="한화시스템"
+                      placeholder="AI SW 마에스트로"
                       v-model="createGroupReq.groupName"
                       :rules="[rules.nameRule]"
                       counter
@@ -509,7 +548,7 @@ const confirmRequest = async () => {
                   </v-radio-group>
                   <v-text-field
                       label="신규 그룹 이름"
-                      placeholder="한화시스템"
+                      placeholder="AI SW 마에스트로"
                       v-model="createGroupReq.groupName"
                       :rules="[rules.nameRule]"
                       clearable
@@ -539,7 +578,7 @@ const confirmRequest = async () => {
         <v-row>
           <v-col>
             <v-sheet
-                class="d-flex flex-wrap">
+                class="d-flex flex-wrap member-panel-scroll">
               <v-card
                   width="100%"
                   class="mb-5 ml-5"
@@ -911,6 +950,22 @@ const confirmRequest = async () => {
 
 .public-btns {
   color: #57af3d !important;
+}
+
+.tree-panel-scroll,
+.member-panel-scroll {
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+@media (max-width: 960px) {
+  .tree-panel-scroll,
+  .member-panel-scroll {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 </style>

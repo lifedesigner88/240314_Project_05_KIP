@@ -3,12 +3,16 @@ import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer';
 
 
 export const toastViewerInstance = (
-    divId: HTMLElement,
-    initialValue : string
+    divId: HTMLElement | undefined,
+    initialValue : string | undefined
 ) => {
+  if (!divId) {
+    return null;
+  }
+
   return new Viewer({
     el: divId,
-    initialValue : initialValue,
+    initialValue : initialValue ?? '',
     linkAttributes: {
       target: '_blank',
     },

@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useGroupuser = defineStore("groupuser", {
     state() {
@@ -15,7 +15,10 @@ export const useGroupuser = defineStore("groupuser", {
     },
     getters: {
         getUserRoleInGroup(state){
-            return state.usersInfoInGroup.filter(userIn => userIn.userId === user.getLoginUserId)[0].groupRole
+            const currentUser = state.usersInfoInGroup.find(
+                userIn => userIn.userId === getUserStore().getLoginUserId
+            );
+            return currentUser?.groupRole;
         },
         getGroupName(state) {
             return state.groupName;
@@ -41,7 +44,7 @@ export const useGroupuser = defineStore("groupuser", {
                 const response =
                     await fetch(`${BASE_URL}/group/${gruopId}/users`, {
                         method: 'GET',
-                        headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                        headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                     });
                 const temp = await response.json();
                 this.groupName = temp.groupName;
@@ -61,7 +64,7 @@ export const useGroupuser = defineStore("groupuser", {
             }
         },
         async updateUserRoleInGroup(gruopId, userId) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -69,7 +72,7 @@ export const useGroupuser = defineStore("groupuser", {
                 const response =
                     await fetch(`${BASE_URL}/group/${gruopId}/${userId}/role`, {
                         method: 'PATCH',
-                        headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                        headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                     });
                 const updatedUserRole = await response.json();
 
@@ -84,14 +87,14 @@ export const useGroupuser = defineStore("groupuser", {
             }
         },
         async deleteUserFromGroup(gruopId, userId) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
             try {
                 const response = await fetch(`${BASE_URL}/group/${gruopId}/${userId}/delete`, {
                     method: 'DELETE',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (response.ok)
                     this.usersInfoInGroup = this.usersInfoInGroup
@@ -110,7 +113,7 @@ export const useGroupuser = defineStore("groupuser", {
             try {
                 const respons = await fetch(`${BASE_URL}/user`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken}
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken}
                 });
                 let temp = await respons.json();
 
@@ -125,7 +128,7 @@ export const useGroupuser = defineStore("groupuser", {
         },
 
         async addUserToGroup(gruopId, userId) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -145,7 +148,7 @@ export const useGroupuser = defineStore("groupuser", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify(group),
                 });

@@ -3,10 +3,9 @@ import {useAgreeDocument} from "~/stores/AgreeDocument.js";
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
-const bookmarks = useBookMarks();
-const agreeDocuments = useAgreeDocument()
-const groupUser = useGroupuser();
+const getUserStore = () => useUser();
+const getBookmarksStore = () => useBookMarks();
+const getAgreeDocumentsStore = () => useAgreeDocument();
 
 export const useDocumentList = defineStore("documentList", {
     state() {
@@ -60,7 +59,7 @@ export const useDocumentList = defineStore("documentList", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/${groupId}/linked`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (!response.ok) throw new Error('Failed to fetch documentList');
                 this.documentList = await response.json();
@@ -76,7 +75,7 @@ export const useDocumentList = defineStore("documentList", {
             try {
                 const response = await fetch(`${BASE_URL}/hashtag`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 this.hashTagsForTop100 = await response.json();
                 this.fillteredTop100HaahTag = this.hashTagsForTop100.sort((a, b) => b.docsCounts - a.docsCounts).slice(0, 100);
@@ -102,7 +101,7 @@ export const useDocumentList = defineStore("documentList", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/${groupId}/linked`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 this.adminDocumentList = await response.json();
             } catch (error) {
@@ -110,7 +109,7 @@ export const useDocumentList = defineStore("documentList", {
             }
         },
         async makePublicDocumentFromGroup(documentId) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -119,7 +118,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                 });
             } catch (e) {
@@ -132,7 +131,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                 });
             } catch (e) {
@@ -145,7 +144,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                 });
             } catch (e) {
@@ -156,7 +155,7 @@ export const useDocumentList = defineStore("documentList", {
             try {
                 const response = await fetch(`${BASE_URL}/hashtag/${hashTagId}/docs/public`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (response.ok)
                     this.publicDocumentList = await response.json();
@@ -171,7 +170,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify(hashTagReq)
                 });
@@ -188,7 +187,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify({targetDocumentId, newTitle})
                 });
@@ -205,7 +204,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify(moveDocumentReq)
                 });
@@ -215,7 +214,7 @@ export const useDocumentList = defineStore("documentList", {
 
         },
         async moveDocumentToTargetGroup(moveDocToGroupReq) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -224,7 +223,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify(moveDocToGroupReq)
                 });
@@ -236,7 +235,7 @@ export const useDocumentList = defineStore("documentList", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/public`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (!response.ok) throw new Error('Failed to fetch publicDocumentList');
                 this.publicDocumentList = await response.json();
@@ -249,7 +248,7 @@ export const useDocumentList = defineStore("documentList", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/${documentId}`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (!response.ok) throw new Error('Failed to fetch document details');
                 this.selectedDocumentDetails = await response.json();
@@ -278,6 +277,7 @@ export const useDocumentList = defineStore("documentList", {
 
         // 북마크 첫번째 문서의 상세정보
         async setFirstBookDetails() {
+            const bookmarks = getBookmarksStore();
             if (bookmarks.myBookMarks.length > 0) {
                 const firstBookId = bookmarks.myBookMarks[0].documentId;
                 await this.setDocumentDetails(firstBookId)
@@ -285,6 +285,7 @@ export const useDocumentList = defineStore("documentList", {
         },
 
         async setAgreeDocumentDetails() {
+            const agreeDocuments = getAgreeDocumentsStore();
             if (agreeDocuments.document.length > 0) {
                 const firstDocument = agreeDocuments.document[0].documentId;
                 await this.setDocumentDetails(firstDocument)
@@ -296,7 +297,7 @@ export const useDocumentList = defineStore("documentList", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify({documentId, content, message})
                 });

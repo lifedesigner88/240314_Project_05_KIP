@@ -33,6 +33,8 @@ public class AttachedFileController {
                     "uploaded", true,
                     "originName", originName,
                     "url", fileUrl));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -41,14 +43,8 @@ public class AttachedFileController {
     // 파일 조회
     @GetMapping("{documentId}/fileList")
     public ResponseEntity<?> fileList(@PathVariable Long documentId) {
-        try {
-            List<AttachedFileResDto> files = attachedFileService.fileList(documentId);
-            return ResponseEntity.ok(files);
-
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("파일 조회 중 오류가 발생했습니다: " + e.getMessage()).getBytes());
-        }
+        List<AttachedFileResDto> files = attachedFileService.fileList(documentId);
+        return ResponseEntity.ok(files);
     }
 
 

@@ -1,6 +1,7 @@
 <script setup>
 import {toastViewerInstance} from "~/useToastViewer";
 import {useAgreeDocument} from "~/stores/AgreeDocument.js";
+import {nextTick, onUnmounted} from "vue";
 
 const groupName = useGroup();
 groupName.TopNaviGroupList = ["Knowledge is Power","접근이 허용된 문서 🔯"];
@@ -9,6 +10,7 @@ const documentList = useDocumentList();
 const attachedFile = useAttachedFile();
 const hover = ref(null);
 const toastViewer = ref();
+let viewerInstance = null;
 
 // 첨부파일 관련
 const fileHover = ref(null);
@@ -17,9 +19,27 @@ const fileHover = ref(null);
 const agreeDocuments = useAgreeDocument();
 
 const UpdateToastViewer = async () => {
-  toastViewerInstance(
+  if (agreeDocuments.document.length === 0) {
+    viewerInstance?.destroy?.();
+    viewerInstance = null;
+    return;
+  }
+
+  await nextTick();
+
+  if (!toastViewer.value) {
+    return;
+  }
+
+  const content = documentList.getSelectedDocContent ?? '';
+  if (viewerInstance?.setMarkdown) {
+    viewerInstance.setMarkdown(content);
+    return;
+  }
+
+  viewerInstance = toastViewerInstance(
       toastViewer.value,
-      documentList.getSelectedDocContent
+      content
   );
 }
 
@@ -47,6 +67,11 @@ const ResetHasTagAddAndFiltering = async () => {
 const handleFileClick = (url) => {
   window.open(url, '_blank');
 };
+
+onUnmounted(() => {
+  viewerInstance?.destroy?.();
+  viewerInstance = null;
+});
 
 </script>
 

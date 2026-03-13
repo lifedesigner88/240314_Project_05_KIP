@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useCreateDocument = defineStore("createDocument", {
   state() {
@@ -20,7 +20,7 @@ export const useCreateDocument = defineStore("createDocument", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
           body: JSON.stringify(form),
         });
         const temp = await response.json();

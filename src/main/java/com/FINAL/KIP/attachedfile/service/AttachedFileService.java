@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class AttachedFileService {
 
+    private static final long MAX_FILE_SIZE_BYTES = 2L * 1024 * 1024;
+
     private final AttachedFileRepository attachedFileRepository;
     private final DocumentRepository documentRepository;
 
@@ -48,6 +50,10 @@ public class AttachedFileService {
 
     //    파일 업로드
     public String uploadFile(MultipartFile file, Long documentId) throws IOException {
+        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+            throw new IllegalArgumentException("첨부파일은 2MB 이하만 업로드할 수 있습니다.");
+        }
+
         String originalFilename = file.getOriginalFilename();
 
 //        파일 길이(String)이 길면 DB에 들어가지 않기 때문에 길이 잘라서 DB 삽입(...)
@@ -91,14 +97,9 @@ public class AttachedFileService {
     }
 
     //    파일 조회
-    public List<AttachedFileResDto> fileList(Long documentId) throws IOException{
+    public List<AttachedFileResDto> fileList(Long documentId) {
         List<AttachedFile> files = attachedFileRepository.findByDocumentId(documentId);
-        if(files.isEmpty()){
-            throw new IOException(documentId + "번 문서에 첨부파일이 없습니다.");
-        }
-
-        // 파일 목록을 AttachedFileResDto로 변환합니다.
-        List<AttachedFileResDto> fileList = files.stream()
+        return files.stream()
                 .map(attachedFile -> AttachedFileResDto.builder()
                         .id(attachedFile.getId())
                         .documentId(attachedFile.getDocumentId())
@@ -107,8 +108,6 @@ public class AttachedFileService {
                         .fileUrl(attachedFile.getFileUrl())
                         .build())
                 .collect(Collectors.toList());
-
-        return fileList;
     }
 
     //    파일 다운로드

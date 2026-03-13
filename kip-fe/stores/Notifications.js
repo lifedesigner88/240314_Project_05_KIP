@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useNotifications = defineStore("notifications", {
   state() {
@@ -24,7 +24,7 @@ export const useNotifications = defineStore("notifications", {
       try {
         const response = await fetch(`${BASE_URL}/notification`, {
           method: 'GET',
-          headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+          headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         if (!response.ok) throw new Error('Failed to fetch notifications.');
         this.notifications = await response.json();
@@ -40,7 +40,7 @@ export const useNotifications = defineStore("notifications", {
           method: 'DELETE',
           headers: {
             Accept: "application/json",
-            'Authorization': 'Bearer ' + user.getAccessToken },
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken },
         });
         const data = await response.json();
         if (response.ok) {
@@ -57,7 +57,7 @@ export const useNotifications = defineStore("notifications", {
       try {
         const response = await fetch(`${BASE_URL}/notification/${notificationId}`, {
           method: 'GET',
-          headers: { 'Authorization': 'Bearer ' + user.getAccessToken },
+          headers: { 'Authorization': 'Bearer ' + getUserStore().getAccessToken },
         });
         const data = await response.json();
         if (response.ok) {

@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useBookMarks = defineStore("bookmarks", {
     state() {
@@ -22,7 +22,7 @@ export const useBookMarks = defineStore("bookmarks", {
             try {
                 const response = await fetch(`${BASE_URL}/user/book/list`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (!response.ok) throw new Error('Failed to fetch bookmarks.');
                 this.myBookMarks = await response.json();
@@ -37,7 +37,7 @@ export const useBookMarks = defineStore("bookmarks", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/${documentId}/book`, {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + user.getAccessToken },
+                    headers: { 'Authorization': 'Bearer ' + getUserStore().getAccessToken },
                 });
                 const data = await response.json();
                 if (response.ok) {

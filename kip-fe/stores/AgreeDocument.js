@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useAgreeDocument = defineStore("agreeDocument", {
   state() {
@@ -25,7 +25,7 @@ export const useAgreeDocument = defineStore("agreeDocument", {
       try {
         const response = await fetch(`${BASE_URL}/user/agree`, {
           method: 'GET',
-          headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+          headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         if (!response.ok) throw new Error('Failed to fetch documents.');
         this.document = await response.json();

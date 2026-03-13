@@ -1,20 +1,35 @@
 <script setup lang="ts">
 
 import {useRequest} from "~/stores/Request";
+import _ from 'lodash';
+import {useColor} from "#imports";
 
+const props = defineProps<{
+  isOpen: boolean
+}>();
 const keyword = ref();
 const pageNumber = ref(0);
 const documentSearch = useDocumentSearch()
-const searchedDocs = ref();
 const sendRequestModal = ref(false);
 const requestDays = ref(30);
 const request = useRequest();
 const docUUID = ref();
 const color = useColor();
-import _ from 'lodash';
-import {useColor} from "#imports";
 
 const emit = defineEmits(['closeModal']);
+const showEmptyState = computed(() => {
+  const normalizedKeyword = keyword.value?.trim() ?? '';
+  return normalizedKeyword
+      && documentSearch.getHasSearched
+      && !documentSearch.getIsLoading
+      && documentSearch.getSearchDocument.length === 0;
+});
+
+const resetSearchState = () => {
+  keyword.value = '';
+  pageNumber.value = 0;
+  documentSearch.resetSearch();
+};
 
 const confirmRequest = async () => {
   if (requestDays.value < 1) {
@@ -26,15 +41,24 @@ const confirmRequest = async () => {
   sendRequestModal.value = false;
 }
 const debouncedSearch = _.debounce(async () => {
-  if (keyword.value != "") {
-    searchedDocs.value = null
-    await documentSearch.setSearchDocument(keyword.value, pageNumber.value);
+  const normalizedKeyword = keyword.value?.trim() ?? '';
+  if (normalizedKeyword) {
+    await documentSearch.setSearchDocument(normalizedKeyword, pageNumber.value);
+    return;
   }
-  // 여기서 실제 검색 로직을 구현합니다.
+  documentSearch.resetSearch();
 }, 500);
-const close = () => {
-  emit('closeModal');
-}
+
+const handleInput = () => {
+  pageNumber.value = 0;
+  const normalizedKeyword = keyword.value?.trim() ?? '';
+  if (!normalizedKeyword) {
+    debouncedSearch.cancel();
+    documentSearch.resetSearch();
+    return;
+  }
+  debouncedSearch();
+};
 
 const viewDocument = async (documentUUID: string) => {
   await documentSearch.viewDocument(documentUUID);
@@ -72,6 +96,18 @@ const removeHTMLTags = (str: string) => {
   return output;
 };
 
+watch(() => props.isOpen, (isOpen) => {
+  if (!isOpen) {
+    debouncedSearch.cancel();
+    resetSearchState();
+  }
+});
+
+onUnmounted(() => {
+  debouncedSearch.cancel();
+  documentSearch.resetSearch();
+});
+
 </script>
 
 <template>
@@ -90,9 +126,34 @@ const removeHTMLTags = (str: string) => {
         variant="solo-inverted"
         placeholder="검색할 단어를 입력하세요"
         v-model="keyword"
-        @input="debouncedSearch">
+        @input="handleInput">
     </v-text-field>
-    <v-list lines="one">
+    <div
+        v-if="documentSearch.getIsLoading"
+        class="d-flex flex-column align-center justify-center py-10"
+    >
+      <v-progress-circular
+          indeterminate
+          :color="color.kipMainColor"
+          size="36"
+          width="4"
+      />
+      <div class="mt-4" style="color: rgba(119,119,119,0.8);">
+        검색 중입니다...
+      </div>
+    </div>
+    <div
+        v-else-if="showEmptyState"
+        class="d-flex flex-column align-center justify-center py-10"
+    >
+      <div class="Search__empty-title">
+        검색 결과가 없습니다.
+      </div>
+      <div class="Search__empty-description mt-2">
+        다른 단어로 다시 검색해보세요.
+      </div>
+    </div>
+    <v-list v-else lines="one">
       <v-list-item
           class="px-2"
           rounded="xl"
@@ -197,5 +258,16 @@ const removeHTMLTags = (str: string) => {
   font-size: 14px;
   font-weight: normal;
 
+}
+
+.Search__empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.Search__empty-description {
+  font-size: 14px;
+  color: rgba(119, 119, 119, 0.85);
 }
 </style>

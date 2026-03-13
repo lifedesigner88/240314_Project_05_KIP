@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useGroup = defineStore("group", {
     state() {
@@ -37,7 +37,7 @@ export const useGroup = defineStore("group", {
     actions: {
 
         async createNewGroup(createGroupReq) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -46,7 +46,7 @@ export const useGroup = defineStore("group", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify(createGroupReq),
                 });
@@ -68,7 +68,7 @@ export const useGroup = defineStore("group", {
         },
 
         async updateGroupInfo(upadeteGroupReq) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -77,7 +77,7 @@ export const useGroup = defineStore("group", {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                     body: JSON.stringify(upadeteGroupReq),
                 });
@@ -94,7 +94,7 @@ export const useGroup = defineStore("group", {
         },
 
         async DeleteGruopFromDataBase (groupId) {
-            if (user.getLoginUserRole !== 'ADMIN') {
+            if (getUserStore().getLoginUserRole !== 'ADMIN') {
                 alert("관리자에게 문의하세요.");
                 return;
             }
@@ -102,7 +102,7 @@ export const useGroup = defineStore("group", {
                 const response = await fetch(`${BASE_URL}/group/${groupId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': 'Bearer ' + user.getAccessToken
+                        'Authorization': 'Bearer ' + getUserStore().getAccessToken
                     },
                 });
                 if (response.ok) {
@@ -144,7 +144,7 @@ export const useGroup = defineStore("group", {
             const response =
                 await fetch(`${BASE_URL}/group/mygroups`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
             this.myGroupsInfo = await response.json();
         },
@@ -152,7 +152,7 @@ export const useGroup = defineStore("group", {
             const response =
                 await fetch(`${BASE_URL}/group/hierarchy/1`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
 
             if (response.ok) {
@@ -168,7 +168,7 @@ export const useGroup = defineStore("group", {
             const response =
                 await fetch(`${BASE_URL}/group/${groupId}/users`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
 
             this.GroupUsersInfo = await response.json();

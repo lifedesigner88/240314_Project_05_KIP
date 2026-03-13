@@ -1,7 +1,7 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
 
 export const useRequest = defineStore("request", {
   state() {
@@ -42,7 +42,7 @@ export const useRequest = defineStore("request", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         const data = await response.json()
         this.myRequest = data;
@@ -56,7 +56,7 @@ export const useRequest = defineStore("request", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
         const data = await response.json()
         this.receivedRequest = data;
@@ -70,7 +70,7 @@ export const useRequest = defineStore("request", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
       } catch (error) {
         console.error('Error fetching search:', error.message);
@@ -82,7 +82,7 @@ export const useRequest = defineStore("request", {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
       } catch (error) {
         console.error('Error fetching search:', error.message);
@@ -94,7 +94,7 @@ export const useRequest = defineStore("request", {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
       } catch (error) {
         console.error('Error fetching search:', error.message);
@@ -106,7 +106,7 @@ export const useRequest = defineStore("request", {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken},
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken},
         });
       } catch (error) {
         console.error('Error fetching search:', error.message);
@@ -118,7 +118,7 @@ export const useRequest = defineStore("request", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + user.getAccessToken },
+            'Authorization': 'Bearer ' + getUserStore().getAccessToken },
           body: JSON.stringify({docId, days})
             });
         const result = await response.json();

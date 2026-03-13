@@ -164,7 +164,7 @@ const changeVersionAndModalClose = () => {
 
 // 전체공개문서 기존그룹으로 이동
 const handlerMoveDocToGroup = ref(false)
-const selectedTargetGroupName = ref("한화시스템")
+const selectedTargetGroupName = ref("AI SW 마에스트로")
 const selectedTargetDocumentTitle = ref("")
 const moveDocToGroupReq = ref({
   targetDocumentId: "",
@@ -173,7 +173,7 @@ const moveDocToGroupReq = ref({
 const realShowGroupModalForSelect = async (documenetTitle, documentId) => {
   if (documentList.getPublicDocumentList.length > 1 && documentId !== 2) {
     await group.setHierarchyInfo();
-    selectedTargetGroupName.value = "한화시스템"
+    selectedTargetGroupName.value = "AI SW 마에스트로"
     handlerMoveDocToGroup.value = true
     moveDocToGroupReq.value.targetDocumentId = documentId
     selectedTargetDocumentTitle.value = documenetTitle
@@ -205,15 +205,18 @@ const fileDialogOpen = () => {
 }
 const handleFileUpload = async () => {
   fileLoading.value = true; // 빙글이 시작
-  await wait(1000); // 1초 대기
-  // 각 파일에 대해 업로드 로직 실행
-  for (let file of files.value) {
-    await attachedFile.setAttachedFileUpload(documentList.getSelectedDocId, file);
+  try {
+    await wait(1000); // 1초 대기
+    for (let file of files.value) {
+      await attachedFile.setAttachedFileUpload(documentList.getSelectedDocId, file);
+    }
+    await attachedFile.setAttachedFileList(documentList.getSelectedDocId);
+    fileDialog.value = false; // 다이얼로그 닫기
+  } catch (error) {
+    console.error('첨부파일 업로드 실패:', error.message);
+  } finally {
+    fileLoading.value = false; // 빙글이 끝내기
   }
-  // 파일 업로드 후 첨부파일 목록 다시 불러오기
-  await attachedFile.setAttachedFileList(documentList.getSelectedDocId);
-  fileLoading.value = false; // 빙글이 끝내기
-  fileDialog.value = false; // 다이얼로그 닫기
 };
 const handleFileClick = (url) => {
   window.open(url, '_blank');
@@ -643,6 +646,9 @@ onKeyStroke(['Enter'], () => {
           <v-card flat>
             <v-card-title class="headline text-center">첨부 파일 🌐
             </v-card-title>
+            <div class="text-caption text-medium-emphasis text-center mb-2">
+              파일당 최대 2MB
+            </div>
             <!-- 첨부파일 업로드 로직 부분 -->
             <v-dialog
                 class="d-flex justify-center"
@@ -659,9 +665,11 @@ onKeyStroke(['Enter'], () => {
                       v-model="files"
                       :color="color.kipMainColor"
                       label="업로드할 파일을 선택해 주세요"
+                      hint="파일당 최대 2MB"
                       placeholder="업로드할 파일을 선택해 주세요"
                       prepend-icon="mdi-paperclip"
                       counter
+                      persistent-hint
                       :show-size="1000"
                       multiple
                   >

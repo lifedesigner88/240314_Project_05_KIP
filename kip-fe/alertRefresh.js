@@ -1,6 +1,5 @@
-const notification = useNotification();
-
 async function refreshNotification() {
+    const notification = useNotifications();
     await notification.setMyNotification();
 }
 

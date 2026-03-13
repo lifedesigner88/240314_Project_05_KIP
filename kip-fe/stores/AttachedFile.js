@@ -1,7 +1,8 @@
 import { getApiBaseUrl } from "~/utils/runtimeConfig";
 
 const BASE_URL = { toString: () => getApiBaseUrl() };
-const user = useUser();
+const getUserStore = () => useUser();
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 
 export const useAttachedFile = defineStore("attachedFile", {
     state() {
@@ -22,7 +23,7 @@ export const useAttachedFile = defineStore("attachedFile", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/${documentId}/fileList`, {
                     method: 'GET',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (response.status === 500) // 첨부파일이 없는 경우.
                     this.attachedFileList = []
@@ -38,16 +39,21 @@ export const useAttachedFile = defineStore("attachedFile", {
 
         async setAttachedFileUpload(documentId, fileData) {
             try {
+                if (fileData.size > MAX_FILE_SIZE_BYTES) {
+                    throw new Error('첨부파일은 2MB 이하만 업로드할 수 있습니다.');
+                }
+
                 const formData = new FormData();
                 formData.append('file', fileData);
 
                 const response = await fetch(`${BASE_URL}/doc/${documentId}/fileUpload`, {
                     method: 'POST',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                     body: formData,
                 });
                 if (!response.ok) { // HTTP 상태 코드가 200-299를 벗어났을 때
-                    throw new Error(`Failed to upload file: ${response.statusText}`);
+                    const errorMessage = await response.text();
+                    throw new Error(errorMessage || `Failed to upload file: ${response.statusText}`);
                 }
 
                 const result = await response.json(); // 응답 본문을 JSON으로 파싱
@@ -56,6 +62,7 @@ export const useAttachedFile = defineStore("attachedFile", {
 
             } catch (error) {
                 console.error('Error uploading file:', error.message);
+                alert(error.message);
                 throw error; // 오류를 상위 호출자에게 전파
             }
         },
@@ -64,7 +71,7 @@ export const useAttachedFile = defineStore("attachedFile", {
             try {
                 const response = await fetch(`${BASE_URL}/doc/file/${fileId}`, {
                     method: 'DELETE',
-                    headers: {'Authorization': 'Bearer ' + user.getAccessToken},
+                    headers: {'Authorization': 'Bearer ' + getUserStore().getAccessToken},
                 });
                 if (!response.ok) {
                     throw new Error('Failed to DELETE attachedFile');
