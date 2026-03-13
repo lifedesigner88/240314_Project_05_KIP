@@ -20,6 +20,7 @@ const clickedGroupId = ref(1);
 const employedDay = ref()
 const openedGroupIds = ref([]);
 const hasInitializedTreeOpenState = ref(false);
+const hasInitializedDefaultGroupSelection = ref(false);
 
 // 모달 관련 데이터
 const addNewMemberModdal = ref();
@@ -336,14 +337,21 @@ const collectOpenedGroupIds = (items, maxDepth, depth = 0) => {
 watch(
   () => group.getHierarchyInfo,
   async (items) => {
-    if (hasInitializedTreeOpenState.value || !items?.length) {
+    if (!items?.length) {
       return;
     }
 
-    const initialOpenedIds = [...new Set(collectOpenedGroupIds(items, 1))];
-    await nextTick();
-    openedGroupIds.value = initialOpenedIds;
-    hasInitializedTreeOpenState.value = true;
+    if (!hasInitializedTreeOpenState.value) {
+      const initialOpenedIds = [...new Set(collectOpenedGroupIds(items, 1))];
+      await nextTick();
+      openedGroupIds.value = initialOpenedIds;
+      hasInitializedTreeOpenState.value = true;
+    }
+
+    if (!hasInitializedDefaultGroupSelection.value) {
+      hasInitializedDefaultGroupSelection.value = true;
+      await setUsersInfoInGroup(items[0]?.id ?? clickedGroupId.value);
+    }
   },
   { immediate: true, deep: true }
 );

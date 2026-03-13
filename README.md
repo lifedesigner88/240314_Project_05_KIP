@@ -64,6 +64,7 @@ KIP는 그룹 내부의 문서와 노하우를 체계적으로 축적하고 공�
 .
 ├── src/                   # Spring Boot backend
 ├── kip-fe/                # Nuxt 3 frontend
+├── infra-handoff/         # infra handoff bundle
 ├── k8s/                   # Kubernetes manifests
 ├── .github/workflows/     # GitHub Actions CI/CD
 ├── Dockerfile             # Backend container build
@@ -151,9 +152,9 @@ KIP는 그룹 내부의 문서와 노하우를 체계적으로 축적하고 공�
 - 환경변수 이름은 최대한 통일, 값만 로컬/서버별로 분리.
 
 ### 최종 도메인
-- `vue-spring.sejongclass.kr`
+- `vue-spring.huposit.kr`
   - 서비스 진입점
-- `vue-spring-file.sejongclass.kr`
+- `vue-spring-s3.huposit.kr`
   - 첨부파일, 에디터 이미지, 프로필 이미지 엔드포인트
 
 ### 최종 구성
@@ -167,7 +168,7 @@ KIP는 그룹 내부의 문서와 노하우를 체계적으로 축적하고 공�
 #### 인프라 레이어
 - `caddy`
 - `image pull`
-- `docker compose up -d`
+- `docker compose -f infra-handoff/compose.yaml --env-file .env.example up -d`
 
 ```text
 This Repository
@@ -184,8 +185,8 @@ Lightsail 4GB
   -> n demo routing
 
 Domain
-  -> vue-spring.sejongclass.kr
-  -> vue-spring-file.sejongclass.kr
+  -> vue-spring.huposit.kr
+  -> vue-spring-s3.huposit.kr
 ```
 
 ### 이 방향을 선택한 이유
@@ -203,29 +204,31 @@ Domain
 - 캐시/토큰: `Redis` 비활성화.
 - 인증: `refresh token` 제거, `access token only` 기준 단순화.
 - 데이터: 관리자 계정과 더미 데이터 자동 주입.
-- 운영: `docker compose up -d` 기준 일괄 기동.
-- 환경 분리: `.env`, `.env.local`, `.env.server`, `.env.example` 기준 분리.
-- 환경 원칙: 변수명은 최대한 동일, 값만 로컬/서버별로 분리.
+- 운영: 루트 `.env.example` 1개 기준 일괄 기동.
+- 환경 원칙: compose 변수와 컨테이너 런타임 변수를 같은 `.env.example`에서 함께 관리.
 
 ### 실행 방식
 #### 로컬 / 단독 실행
-- 이 레포에서 `docker compose up -d`
-- `.env`가 기본으로 `.env.local`을 참조
+- 이 레포에서 `docker compose --env-file .env.example up -d`
+- 포트나 이미지 값을 바꾸지 않는 기본 실행은 `docker compose up -d`로도 동작하지만, `.env.example` 값을 수정했다면 `--env-file .env.example`로 실행해야 변경이 반영됨
+- `backend`가 기본 시드를 먼저 만든 뒤, `db-seed` one-shot service가 `infra-handoff/seed-rich.sql`을 자동 주입
+- `frontend`는 `db-seed` 성공 뒤에 기동
+- `seed-rich v1` 흔적이 이미 있으면 `db-seed`는 자동으로 skip
 - 기본 관리자 계정: `asm-1234 / 1234` (`소마멘토`)
 - 추가 데모 계정: `asm-0001 / 1234`, `asm-0002 / 1234`, `asm-0003 / 1234`, `asm-0004 / 1234`, `asm-0005 / 1234`, `asm-0006 / 1234`, `asm-0007 / 1234`
 - 기본 더미데이터: `AI SW 마에스트로` 그룹 트리, 공개 문서, 백엔드/프론트엔드/AI 실험 문서, 권한 요청 샘플 자동 주입
 - 기본 포트: `3000(frontend)`, `8080(backend)`, `9000(minio)`, `9001(minio console)`
 - `Caddy` 없이도 기동 가능한 구조 우선 구성.
 - 목적: 기능 검증, 더미데이터 포함 데모 상태 재현.
-- 더미데이터는 초기 기동 시 1회 주입되므로, 새 시드 반영이 필요하면 `docker compose down -v` 후 다시 `docker compose up -d --build`
+- 더미데이터는 초기 기동 시 1회 주입되므로, 새 시드 반영이 필요하면 `docker compose --env-file .env.example down -v` 후 다시 `docker compose --env-file .env.example up -d --build`
 
 #### 서버 / 배포 실행
 - `GitHub Actions`에서 배포용 이미지 빌드.
 - 이미지 명칭은 고정, 태그만 갱신.
 - 권장 레지스트리: `GHCR`
-- 서버 환경값은 `.env.server` 파일로 별도 관리.
-- `Lightsail` 인프라 레이어에서 `docker compose --env-file .env.server pull`
-- 이어서 `docker compose --env-file .env.server up -d`
+- 인프라 레이어도 같은 루트 `.env.example`를 사용.
+- `Lightsail` 인프라 레이어에서는 `docker compose -f infra-handoff/compose.yaml --env-file .env.example pull`
+- 이어서 `docker compose -f infra-handoff/compose.yaml --env-file .env.example up -d`
 
 ### 리팩토링 우선순위
 1. 이 레포 단독 `docker compose up` 환경 구성
@@ -239,18 +242,82 @@ Domain
 ### 운영 기준
 - 인스턴스 사양: `AWS Lightsail 4GB` 고정 운영.
 - 운영 기간: 면접 준비 기간 `2주` 단기 운영, 이후 팀원 모집 시점 `4주` 단기 재오픈.
-- 로컬 실행: `docker compose up -d`
-- 서버 실행: `docker compose --env-file .env.server pull` 후 `up -d`
-- 서버 환경변수 실제 값은 인프라 레이어에서 관리.
+- 로컬 실행: `docker compose --env-file .env.example up -d`
+- 서버 실행: `docker compose -f infra-handoff/compose.yaml --env-file .env.example pull` 후 `up -d`
+- 서버 환경값도 루트 `.env.example` 한 파일 기준으로 관리.
 - 배포용 기본값은 SQL 로그 비활성화, 대신 백엔드는 요청당 1줄 로그만 출력.
 
 ### GitHub Actions / GHCR
 - `demo` 브랜치 push 시 `backend`, `frontend` 이미지를 `GHCR`에 업로드하는 workflow를 사용.
 - 기본 이미지 태그는 `demo`, 추가 추적용으로 `sha-<commit>` 태그도 함께 업로드.
-- 서버 자동 배포까지 연결하려면 아래 값이 필요.
-  - Repository Variables: `DEMO_HOST`, `DEMO_SSH_PORT`, `DEMO_SSH_USER`, `DEMO_APP_DIR`
-  - Repository Secrets: `DEMO_SSH_KEY`, `GHCR_PULL_TOKEN`
-- 위 값이 모두 있으면 workflow가 서버에서 `docker compose --env-file .env.server pull` 후 `up -d`까지 수행.
+- 이 레포의 workflow는 이미지를 올리는 것까지만 담당하고, 실제 `docker compose pull && up -d`는 인프라 레이어에서 수행.
+- GHCR 업로드는 기본 `GITHUB_TOKEN` 기반으로 동작하므로 별도 배포용 SSH 시크릿은 필요하지 않음.
+
+### Infra Compose Env
+- 단일 기준 파일은 루트 [`.env.example`](./.env.example) 이다.
+- 이 파일 하나에 아래 값이 함께 들어간다.
+  - compose 이미지/포트 값
+  - backend 런타임 값
+  - frontend 런타임 값
+- handoff 기준 파일은 [`.env.example`](./.env.example), [infra-handoff/compose.yaml](./infra-handoff/compose.yaml), [infra-handoff/seed-rich.sql](./infra-handoff/seed-rich.sql) 이다.
+
+### 배포 전달용 환경변수
+- 인프라 레이어에 전달할 실제 값은 루트 [`.env.example`](./.env.example) 하나로 정리한다.
+
+`.env.example`
+```env
+COMPOSE_PROJECT_NAME=kip-demo
+MARIADB_IMAGE=mariadb:11.4
+MINIO_IMAGE=minio/minio:latest
+MINIO_MC_IMAGE=minio/mc:latest
+DB_SEED_IMAGE=mariadb:11.4
+BACKEND_IMAGE=ghcr.io/lifedesigner88/kip-demo-backend:demo
+FRONTEND_IMAGE=ghcr.io/lifedesigner88/kip-demo-frontend:demo
+FRONTEND_HOST_PORT=3000
+FRONTEND_CONTAINER_PORT=3000
+BACKEND_HOST_PORT=8080
+BACKEND_CONTAINER_PORT=8080
+MINIO_API_HOST_PORT=9000
+MINIO_CONSOLE_HOST_PORT=9001
+SPRING_PROFILES_ACTIVE=demo
+DB_HOST=mariadb
+DB_PORT=3306
+DB_NAME=kip
+DB_USERNAME=kip
+DB_PASSWORD=demo-password
+MARIADB_DATABASE=kip
+MARIADB_USER=kip
+MARIADB_PASSWORD=demo-password
+MARIADB_ROOT_PASSWORD=demo-root-password
+JWT_SECRET_KEY=demo-jwt-secret-key-for-interview-only
+JWT_EXPIRATION_MINUTES=720
+JWT_ISSUER=kip-demo
+FEATURE_PUSH_ENABLED=false
+FEATURE_SEARCH_ENABLED=false
+SPRING_JPA_SHOW_SQL=false
+SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=false
+AWS_REGION=ap-northeast-2
+STORAGE_BUCKET=kip-demo
+STORAGE_ENDPOINT=http://minio:9000
+STORAGE_PUBLIC_BASE_URL=http://localhost:9000
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+STORAGE_PATH_STYLE_ACCESS=true
+STORAGE_AUTO_CREATE_BUCKET=true
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin
+ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://vue-spring.huposit.kr,https://huposit.kr,https://www.huposit.kr
+JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m
+NUXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NUXT_PUBLIC_PUSH_ENABLED=false
+```
+
+- 로컬 기본값은 `localhost` 기준이다.
+- 서버 배포 전에는 `STORAGE_PUBLIC_BASE_URL`, `ALLOWED_ORIGINS`, `NUXT_PUBLIC_API_BASE_URL`만 실제 도메인 값으로 바꿔서 사용한다.
+- 서버 예시:
+  - `STORAGE_PUBLIC_BASE_URL=https://vue-spring-s3.huposit.kr`
+  - `ALLOWED_ORIGINS=https://vue-spring.huposit.kr,https://huposit.kr,https://www.huposit.kr`
+  - `NUXT_PUBLIC_API_BASE_URL=https://vue-spring.huposit.kr/api`
 
 ### 최근 데모 안정화 반영
 - 검색 모달에 로딩중 표시, 검색 결과 없음 문구, 입력값 삭제 및 모달 종료 시 초기화 흐름을 추가.

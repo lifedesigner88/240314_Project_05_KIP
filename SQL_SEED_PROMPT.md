@@ -17,7 +17,7 @@
 
 ## 사용 목적
 
-- 인프라 레이어에서 `seed-rich.sql` 같은 파일을 생성하기 위한 프롬프트
+- 인프라 레이어에서 `infra-handoff/seed-rich.sql` 같은 파일을 생성하기 위한 프롬프트
 - 이미 떠 있는 `MariaDB`에 직접 실행 가능한 SQL 생성
 - 현재 앱 시드를 완전히 버리지 않고, `필요한 insert/update`로 17기 운영 데모 세계관에 맞추는 구조
 
@@ -281,7 +281,7 @@
 - 댓글은 학생, 멘토, 관리자가 남길 법한 짧은 피드백/질문/요청 형태로 자연스러워야 함.
 - `comment.user_name`은 반드시 실제 작성자 `user.name`과 일치해야 함.
 - `attached_file`은 실제 외부 파일 없이도 동작하도록 예시 URL을 사용해야 함.
-  - 예: `https://vue-spring-file.sejongclass.kr/demo/pitch-deck/team-001-v1.pdf`
+  - 예: `https://vue-spring-s3.huposit.kr/demo/pitch-deck/team-001-v1.pdf`
 - 발표자료, 와이어프레임, 사업계획서 PDF, 데이터셋 설명서 같은 첨부파일도 생성해야 함.
 
 10. 데이터 품질
@@ -312,12 +312,12 @@ SQL 작성 원칙:
 
 ## 인프라 적용 방식
 
-생성된 `seed-rich.sql`은 아래 방식으로 바로 주입 가능하다.
+생성된 `infra-handoff/seed-rich.sql`은 아래 방식으로 바로 주입 가능하다.
 
 ### 실행 중인 DB에 직접 주입
 
 ```bash
-docker exec -i kip-demo-mariadb-1 mariadb -ukip -pkip1234 kip < seed-rich.sql
+docker exec -i kip-demo-mariadb-1 mariadb -ukip -pkip1234 kip < infra-handoff/seed-rich.sql
 ```
 
 ### 최초 기동 시 자동 주입

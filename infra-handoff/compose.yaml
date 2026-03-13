@@ -5,7 +5,7 @@ services:
     image: ${MARIADB_IMAGE:-mariadb:11.4}
     restart: unless-stopped
     env_file:
-      - .env.example
+      - ../.env.example
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
@@ -19,7 +19,7 @@ services:
     image: ${MINIO_IMAGE:-minio/minio:latest}
     restart: unless-stopped
     env_file:
-      - .env.example
+      - ../.env.example
     command: server /data --console-address ":9001"
     ports:
       - "${MINIO_API_HOST_PORT:-9000}:9000"
@@ -31,7 +31,7 @@ services:
     image: ${MINIO_MC_IMAGE:-minio/mc:latest}
     restart: "no"
     env_file:
-      - .env.example
+      - ../.env.example
     depends_on:
       - minio
     entrypoint:
@@ -49,14 +49,14 @@ services:
     image: ${DB_SEED_IMAGE:-mariadb:11.4}
     restart: "no"
     env_file:
-      - .env.example
+      - ../.env.example
     depends_on:
       mariadb:
         condition: service_healthy
       backend:
         condition: service_healthy
     volumes:
-      - ./infra-handoff/seed-rich.sql:/seed-rich.sql:ro
+      - ./seed-rich.sql:/seed-rich.sql:ro
     entrypoint:
       - /bin/sh
       - -ec
@@ -73,12 +73,9 @@ services:
 
   backend:
     image: ${BACKEND_IMAGE:-ghcr.io/lifedesigner88/kip-demo-backend:demo}
-    build:
-      context: .
-      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
-      - .env.example
+      - ../.env.example
     depends_on:
       mariadb:
         condition: service_healthy
@@ -99,12 +96,9 @@ services:
 
   frontend:
     image: ${FRONTEND_IMAGE:-ghcr.io/lifedesigner88/kip-demo-frontend:demo}
-    build:
-      context: ./kip-fe
-      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
-      - .env.example
+      - ../.env.example
     depends_on:
       backend:
         condition: service_healthy

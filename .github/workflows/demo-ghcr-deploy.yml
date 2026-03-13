@@ -17,8 +17,6 @@ concurrency:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    outputs:
-      image_namespace: ${{ steps.image-vars.outputs.image_namespace }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -87,50 +85,3 @@ jobs:
           labels: ${{ steps.frontend-meta.outputs.labels }}
           cache-from: type=gha,scope=demo-frontend
           cache-to: type=gha,mode=max,scope=demo-frontend
-
-  deploy-demo:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
-    env:
-      DEMO_HOST: ${{ vars.DEMO_HOST }}
-      DEMO_SSH_PORT: ${{ vars.DEMO_SSH_PORT }}
-      DEMO_SSH_USER: ${{ vars.DEMO_SSH_USER }}
-      DEMO_APP_DIR: ${{ vars.DEMO_APP_DIR }}
-      DEMO_SSH_KEY: ${{ secrets.DEMO_SSH_KEY }}
-      GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
-      GHCR_USERNAME: ${{ github.repository_owner }}
-      IMAGE_NAMESPACE: ${{ needs.build-and-push.outputs.image_namespace }}
-    steps:
-      - name: Skip deploy when demo server is not configured
-        if: ${{ env.DEMO_HOST == '' || env.DEMO_SSH_USER == '' || env.DEMO_APP_DIR == '' || env.DEMO_SSH_KEY == '' || env.GHCR_PULL_TOKEN == '' }}
-        run: |
-          echo "Demo server deploy skipped."
-          echo "Required variables: DEMO_HOST, DEMO_SSH_USER, DEMO_APP_DIR"
-          echo "Required secrets: DEMO_SSH_KEY, GHCR_PULL_TOKEN"
-
-      - name: Prepare SSH client
-        if: ${{ env.DEMO_HOST != '' && env.DEMO_SSH_USER != '' && env.DEMO_APP_DIR != '' && env.DEMO_SSH_KEY != '' && env.GHCR_PULL_TOKEN != '' }}
-        shell: bash
-        run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "$DEMO_SSH_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${DEMO_SSH_PORT:-22}" "$DEMO_HOST" >> ~/.ssh/known_hosts
-
-      - name: Pull and restart demo containers
-        if: ${{ env.DEMO_HOST != '' && env.DEMO_SSH_USER != '' && env.DEMO_APP_DIR != '' && env.DEMO_SSH_KEY != '' && env.GHCR_PULL_TOKEN != '' }}
-        shell: bash
-        run: |
-          REMOTE_COMMAND=$(cat <<EOF
-          set -eu
-          cd $(printf '%q' "$DEMO_APP_DIR")
-          echo $(printf '%q' "$GHCR_PULL_TOKEN") | docker login ghcr.io -u $(printf '%q' "$GHCR_USERNAME") --password-stdin
-          IMAGE_REGISTRY=ghcr.io IMAGE_NAMESPACE=$(printf '%q' "$IMAGE_NAMESPACE") IMAGE_TAG=demo docker compose --env-file .env.server pull backend frontend
-          IMAGE_REGISTRY=ghcr.io IMAGE_NAMESPACE=$(printf '%q' "$IMAGE_NAMESPACE") IMAGE_TAG=demo docker compose --env-file .env.server up -d backend frontend
-          EOF
-          )
-
-          ssh -p "${DEMO_SSH_PORT:-22}" "${DEMO_SSH_USER}@${DEMO_HOST}" "$REMOTE_COMMAND"

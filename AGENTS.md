@@ -5,11 +5,11 @@
 ## 최종 목표
 
 - `AWS Lightsail 4GB` 단일 인스턴스에서 이 프로젝트 하나를 실행.
-- 1차 목표는 이 레포 단독으로 `docker compose up -d` 가능 상태 구성.
+- 1차 목표는 이 레포 단독으로 `docker compose --env-file .env.example up -d` 가능 상태 구성.
 - 2차 목표는 배포용 이미지를 `GitHub Actions`로 빌드 후 레지스트리에 push하는 구조 구성.
 - 서버 배포는 인프라 레이어가 이미지 `pull + up -d` 담당.
-- 로컬과 서버 모두 변수명은 최대한 동일, 값만 `.env`로 분리.
-- 로컬 기본 실행은 `.env -> .env.local` 기준 `docker compose up -d`.
+- 로컬과 서버 모두 변수명은 최대한 동일하게 유지하고, 루트 `.env.example` 한 파일에서 함께 관리.
+- 기본 실행은 `docker compose --env-file .env.example up -d` 기준.
 
 ## PR 운영 규칙
 
@@ -22,9 +22,9 @@
 ## 확정된 방향
 
 - 서비스 도메인.
-  - `vue-spring.sejongclass.kr`
+  - `vue-spring.huposit.kr`
 - 파일 도메인.
-  - `vue-spring-file.sejongclass.kr`
+  - `vue-spring-s3.huposit.kr`
 - 프론트도 Docker 컨테이너에 포함.
 - 파일 저장소는 `MinIO`.
 - 이 레포 단독 compose에는 `Caddy`를 포함하지 않음.
@@ -48,7 +48,7 @@
 ### 1단계. 이 레포 단독 compose
 
 - 목표.
-  - 레포를 clone 후 `docker compose up -d`로 전체 스택 기동.
+  - 레포를 clone 후 `docker compose --env-file .env.example up -d`로 전체 스택 기동.
 - 포함 대상.
   - `frontend`
   - `backend`
@@ -71,7 +71,7 @@
     - `.env.example`
     - 이미지 빌드 workflow
   - 인프라 레이어.
-    - `.env.server`
+    - `.env.example`
     - compose 실행
     - 이미지 pull
     - 컨테이너 재기동
@@ -125,20 +125,13 @@
   - `kip-fe/package.json`
   - `kip-fe/stores/User.js`
 
-도메인과 API 주소는 `.env.local`, `.env.server` 기준으로 분리하는 방향 우선.
+도메인과 API 주소는 루트 `.env.example` 기준으로 관리하는 방향.
 
 ## 환경변수 원칙
 
 - 변수명은 최대한 동일하게 유지.
-- 값만 로컬과 서버에서 다르게 설정.
-- 이 레포.
-  - `.env`
-  - `.env.example`
-  - `.env.local`
-  - `.env.server.example`
-- 인프라 레이어.
-  - `.env.server`
-- 서버 실제 값은 인프라 레이어가 보관.
+- compose 변수와 런타임 변수를 루트 `.env.example` 하나에 같이 둔다.
+- 서버 실제 값도 현재는 별도 비밀키 분리 없이 `.env.example` 기준으로 관리한다.
 - 프론트 공개 변수와 백엔드 비밀 변수는 분리 관리.
 
 예시 방향.
@@ -146,8 +139,8 @@
   - `NUXT_PUBLIC_API_BASE_URL=http://localhost:8080`
   - `STORAGE_PUBLIC_BASE_URL=http://localhost:9000`
 - 서버.
-  - `NUXT_PUBLIC_API_BASE_URL=https://vue-spring.sejongclass.kr/api`
-  - `STORAGE_PUBLIC_BASE_URL=https://vue-spring-file.sejongclass.kr`
+  - `NUXT_PUBLIC_API_BASE_URL=https://vue-spring.huposit.kr/api`
+  - `STORAGE_PUBLIC_BASE_URL=https://vue-spring-s3.huposit.kr`
 
 ### CORS
 
@@ -196,7 +189,7 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 ## 현재 검증 상태
 
 - `docker compose build backend frontend` 통과.
-- `docker compose up -d` 통과.
+- `docker compose --env-file .env.example up -d` 통과.
 - 확인된 컨테이너.
   - `frontend`
   - `backend`
@@ -218,11 +211,8 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 ## 이번 리팩터링에서 실제 반영된 내용
 
 - 루트 기준 `compose.yaml` 추가.
-- 기본 환경 파일 추가.
-  - `.env`
-  - `.env.local`
+- 기본 환경 파일 정리.
   - `.env.example`
-  - `.env.server.example`
 - 백엔드 Dockerfile 정리.
 - 프론트 Dockerfile 추가.
 - `MinIO` 호환 업로드 경로 반영.
@@ -250,23 +240,21 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
   - SQL 로그는 환경변수로 제어
   - 서버 기본값은 SQL 로그 비활성화
   - SQL 대신 `HTTP METHOD / path / status / elapsed ms` 1줄 요청 로그 필터 추가
-- `compose.yaml`에 `backend`, `frontend` 이미지명 추가.
-  - 로컬은 `IMAGE_TAG=local` 기준 `--build`
-  - 서버는 `IMAGE_TAG=demo` 기준 GHCR `pull + up -d`
+- `compose.yaml`에 `BACKEND_IMAGE`, `FRONTEND_IMAGE` 기준 이미지명 반영.
 - GitHub Actions 데모 배포 workflow 추가 예정/기준.
   - 대상 브랜치: `demo`
   - 동작: `backend`, `frontend` 이미지 GHCR push
-  - 선택: 서버 시크릿이 있으면 SSH로 `docker compose pull && up -d`
+  - 실제 compose 재기동은 인프라 레이어 책임
 
-## 현재 로컬 기본값
+## 현재 기본값
 
-- `.env.local`은 현재 원격 확인용 주소 기준.
-  - `NUXT_PUBLIC_API_BASE_URL=http://100.122.220.121:8080`
-  - `ALLOWED_ORIGINS=http://100.122.220.121:3000`
-  - `STORAGE_PUBLIC_BASE_URL=http://100.122.220.121:9000`
+- 루트 `.env.example`은 현재 로컬 `localhost` 기준.
+  - `NUXT_PUBLIC_API_BASE_URL=http://localhost:8080`
+  - `ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,https://vue-spring.huposit.kr,https://huposit.kr,https://www.huposit.kr`
+  - `STORAGE_PUBLIC_BASE_URL=http://localhost:9000`
   - `SPRING_JPA_SHOW_SQL=false`
   - `SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=false`
-- 로컬 PC에서 다시 사용할 때는 `localhost` 기준으로 되돌려야 함.
+- 서버 배포 전에는 위 3개 값을 `huposit.kr` 도메인 기준으로 교체한다.
 
 ## 더미데이터 계정 메모
 
@@ -327,7 +315,7 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 
 - Docker 데몬 정상화 후 재확인 명령.
   - `docker compose down --remove-orphans`
-  - `docker compose up -d --build`
+  - `docker compose --env-file .env.example up -d --build`
 - 기대 결과.
   - `frontend`
   - `backend`
@@ -339,9 +327,9 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 ## 다음 리팩터링 우선순위
 
 1. Docker 데몬 충돌 해소.
-2. `docker compose up -d` 재검증.
+2. `docker compose --env-file .env.example up -d` 재검증.
 3. 브라우저 접속 주소와 API/CORS 값 재검증.
-4. `.env.local`과 서버용 값 분리 정리 여부 판단.
+4. 루트 `.env.example` 단일 기준 유지 여부 점검.
 5. `GitHub Actions -> GHCR 이미지 빌드/푸시` 구성 시작.
 
 ## GHCR / Demo Workflow 메모
@@ -354,15 +342,12 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 - 기본 이미지명.
   - `ghcr.io/<owner>/kip-demo-backend:demo`
   - `ghcr.io/<owner>/kip-demo-frontend:demo`
-- 서버 자동 배포에 필요한 값.
-  - Variables
-    - `DEMO_HOST`
-    - `DEMO_SSH_PORT`
-    - `DEMO_SSH_USER`
-    - `DEMO_APP_DIR`
-  - Secrets
-    - `DEMO_SSH_KEY`
-    - `GHCR_PULL_TOKEN`
+- workflow 책임.
+  - GHCR push까지만 수행
+  - 서버 `pull + up -d`는 인프라 레이어에서 실행
+- 인프라 compose용 파일.
+  - `.env.example`
+  - `infra-handoff/compose.yaml`
 
 ## SQL 시드 프롬프트 메모
 
