@@ -236,6 +236,20 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
   - 그룹 트리 6개
   - 데모 사용자 8명
   - 그룹별 문서, 버전 이력, 권한 요청 샘플 포함
+- 검색 모달 UX 보강.
+  - 로딩중 표시
+  - 검색 결과 없음 문구
+  - 검색어 삭제 및 모달 종료 시 결과 초기화
+- `Toast UI Viewer`, Pinia 초기화 순서 관련 런타임 오류 수정.
+  - `bookmarks`, `agree`, `F5` 새로고침 진입 안정화
+- 첨부파일 동작 보강.
+  - 파일당 최대 2MB 제한
+  - 첨부파일이 없는 문서는 `500` 대신 빈 배열 반환
+- 부서목록 메인 트리 첫 진입 시 2단계 정도 기본 확장되도록 보정.
+- 백엔드 로그 정책 정리.
+  - SQL 로그는 환경변수로 제어
+  - 서버 기본값은 SQL 로그 비활성화
+  - SQL 대신 `HTTP METHOD / path / status / elapsed ms` 1줄 요청 로그 필터 추가
 
 ## 현재 로컬 기본값
 
@@ -243,6 +257,8 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
   - `NUXT_PUBLIC_API_BASE_URL=http://100.122.220.121:8080`
   - `ALLOWED_ORIGINS=http://100.122.220.121:3000`
   - `STORAGE_PUBLIC_BASE_URL=http://100.122.220.121:9000`
+  - `SPRING_JPA_SHOW_SQL=false`
+  - `SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=false`
 - 로컬 PC에서 다시 사용할 때는 `localhost` 기준으로 되돌려야 함.
 
 ## 더미데이터 계정 메모

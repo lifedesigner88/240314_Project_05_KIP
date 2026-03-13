@@ -1,5 +1,6 @@
 package com.FINAL.KIP.securities;
 
+import com.FINAL.KIP.common.logging.HttpRequestLoggingFilter;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +38,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity httpSecurity,
+        HttpRequestLoggingFilter httpRequestLoggingFilter
+    ) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
@@ -53,9 +57,15 @@ public class SecurityConfig {
                 .anyRequest().authenticated())
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter, BasicAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, BasicAuthenticationFilter.class)
+            .addFilterAfter(httpRequestLoggingFilter, JwtAuthFilter.class);
 
         return httpSecurity.build();
+    }
+
+    @Bean
+    public HttpRequestLoggingFilter httpRequestLoggingFilter() {
+        return new HttpRequestLoggingFilter();
     }
 
     @Bean

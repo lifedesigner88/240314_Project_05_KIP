@@ -19,12 +19,9 @@ const mypage = ref(false);
 const user = useUser();
 const color = useColor();
 const group = useGroup();
-const groupUser = useGroupuser();
-const document = useDocumentList()
 const documentSearch = useDocumentSearch();
 
 const notification = useNotifications();
-await notification.setMyNotification();
 
 // function
 const handleRailClick = () => {
@@ -40,10 +37,7 @@ watch(dialog, (isOpen) => {
 // 기본데이터 로그인 후 불러오기. (최초 그룹 로딩속도 향상)
 onMounted(async () => {
   await group.setHierarchyInfo();
-  groupUser.$reset();
-  await groupUser.setUsersInfoInGroup(1);
-  await document.setAdminDocumentList(1);
-  await document.setPublicDocumentList();
+  await notification.setMyNotification();
 })
 
 // 단축키 관련
