@@ -250,6 +250,13 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
   - SQL 로그는 환경변수로 제어
   - 서버 기본값은 SQL 로그 비활성화
   - SQL 대신 `HTTP METHOD / path / status / elapsed ms` 1줄 요청 로그 필터 추가
+- `compose.yaml`에 `backend`, `frontend` 이미지명 추가.
+  - 로컬은 `IMAGE_TAG=local` 기준 `--build`
+  - 서버는 `IMAGE_TAG=demo` 기준 GHCR `pull + up -d`
+- GitHub Actions 데모 배포 workflow 추가 예정/기준.
+  - 대상 브랜치: `demo`
+  - 동작: `backend`, `frontend` 이미지 GHCR push
+  - 선택: 서버 시크릿이 있으면 SSH로 `docker compose pull && up -d`
 
 ## 현재 로컬 기본값
 
@@ -336,6 +343,26 @@ Lightsail 4GB 기준으로 `JAVA_TOOL_OPTIONS` 기반 메모리 제한 적용.
 3. 브라우저 접속 주소와 API/CORS 값 재검증.
 4. `.env.local`과 서버용 값 분리 정리 여부 판단.
 5. `GitHub Actions -> GHCR 이미지 빌드/푸시` 구성 시작.
+
+## GHCR / Demo Workflow 메모
+
+- workflow 파일.
+  - `.github/workflows/demo-ghcr-deploy.yml`
+- 트리거.
+  - `demo` 브랜치 push
+  - `workflow_dispatch`
+- 기본 이미지명.
+  - `ghcr.io/<owner>/kip-demo-backend:demo`
+  - `ghcr.io/<owner>/kip-demo-frontend:demo`
+- 서버 자동 배포에 필요한 값.
+  - Variables
+    - `DEMO_HOST`
+    - `DEMO_SSH_PORT`
+    - `DEMO_SSH_USER`
+    - `DEMO_APP_DIR`
+  - Secrets
+    - `DEMO_SSH_KEY`
+    - `GHCR_PULL_TOKEN`
 
 ## SQL 시드 프롬프트 메모
 

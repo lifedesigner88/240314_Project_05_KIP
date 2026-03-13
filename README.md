@@ -244,6 +244,14 @@ Domain
 - 서버 환경변수 실제 값은 인프라 레이어에서 관리.
 - 배포용 기본값은 SQL 로그 비활성화, 대신 백엔드는 요청당 1줄 로그만 출력.
 
+### GitHub Actions / GHCR
+- `demo` 브랜치 push 시 `backend`, `frontend` 이미지를 `GHCR`에 업로드하는 workflow를 사용.
+- 기본 이미지 태그는 `demo`, 추가 추적용으로 `sha-<commit>` 태그도 함께 업로드.
+- 서버 자동 배포까지 연결하려면 아래 값이 필요.
+  - Repository Variables: `DEMO_HOST`, `DEMO_SSH_PORT`, `DEMO_SSH_USER`, `DEMO_APP_DIR`
+  - Repository Secrets: `DEMO_SSH_KEY`, `GHCR_PULL_TOKEN`
+- 위 값이 모두 있으면 workflow가 서버에서 `docker compose --env-file .env.server pull` 후 `up -d`까지 수행.
+
 ### 최근 데모 안정화 반영
 - 검색 모달에 로딩중 표시, 검색 결과 없음 문구, 입력값 삭제 및 모달 종료 시 초기화 흐름을 추가.
 - 첨부파일은 파일당 최대 2MB로 제한하고, 첨부파일이 없는 문서는 빈 배열을 반환하도록 정리.

@@ -1,0 +1,136 @@
+name: demo-ghcr-deploy
+
+on:
+  push:
+    branches:
+      - demo
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: demo-ghcr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image_namespace: ${{ steps.image-vars.outputs.image_namespace }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Resolve image names
+        id: image-vars
+        shell: bash
+        run: |
+          OWNER_LOWER="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "image_namespace=${OWNER_LOWER}" >> "$GITHUB_OUTPUT"
+          echo "backend_image=ghcr.io/${OWNER_LOWER}/kip-demo-backend" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=ghcr.io/${OWNER_LOWER}/kip-demo-frontend" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract backend image metadata
+        id: backend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image-vars.outputs.backend_image }}
+          tags: |
+            type=raw,value=demo
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Extract frontend image metadata
+        id: frontend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image-vars.outputs.frontend_image }}
+          tags: |
+            type=raw,value=demo
+            type=sha,prefix=sha-
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.backend-meta.outputs.tags }}
+          labels: ${{ steps.backend-meta.outputs.labels }}
+          cache-from: type=gha,scope=demo-backend
+          cache-to: type=gha,mode=max,scope=demo-backend
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./kip-fe
+          file: ./kip-fe/Dockerfile
+          push: true
+          tags: ${{ steps.frontend-meta.outputs.tags }}
+          labels: ${{ steps.frontend-meta.outputs.labels }}
+          cache-from: type=gha,scope=demo-frontend
+          cache-to: type=gha,mode=max,scope=demo-frontend
+
+  deploy-demo:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEMO_HOST: ${{ vars.DEMO_HOST }}
+      DEMO_SSH_PORT: ${{ vars.DEMO_SSH_PORT }}
+      DEMO_SSH_USER: ${{ vars.DEMO_SSH_USER }}
+      DEMO_APP_DIR: ${{ vars.DEMO_APP_DIR }}
+      DEMO_SSH_KEY: ${{ secrets.DEMO_SSH_KEY }}
+      GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+      GHCR_USERNAME: ${{ github.repository_owner }}
+      IMAGE_NAMESPACE: ${{ needs.build-and-push.outputs.image_namespace }}
+    steps:
+      - name: Skip deploy when demo server is not configured
+        if: ${{ env.DEMO_HOST == '' || env.DEMO_SSH_USER == '' || env.DEMO_APP_DIR == '' || env.DEMO_SSH_KEY == '' || env.GHCR_PULL_TOKEN == '' }}
+        run: |
+          echo "Demo server deploy skipped."
+          echo "Required variables: DEMO_HOST, DEMO_SSH_USER, DEMO_APP_DIR"
+          echo "Required secrets: DEMO_SSH_KEY, GHCR_PULL_TOKEN"
+
+      - name: Prepare SSH client
+        if: ${{ env.DEMO_HOST != '' && env.DEMO_SSH_USER != '' && env.DEMO_APP_DIR != '' && env.DEMO_SSH_KEY != '' && env.GHCR_PULL_TOKEN != '' }}
+        shell: bash
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEMO_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${DEMO_SSH_PORT:-22}" "$DEMO_HOST" >> ~/.ssh/known_hosts
+
+      - name: Pull and restart demo containers
+        if: ${{ env.DEMO_HOST != '' && env.DEMO_SSH_USER != '' && env.DEMO_APP_DIR != '' && env.DEMO_SSH_KEY != '' && env.GHCR_PULL_TOKEN != '' }}
+        shell: bash
+        run: |
+          REMOTE_COMMAND=$(cat <<EOF
+          set -eu
+          cd $(printf '%q' "$DEMO_APP_DIR")
+          echo $(printf '%q' "$GHCR_PULL_TOKEN") | docker login ghcr.io -u $(printf '%q' "$GHCR_USERNAME") --password-stdin
+          IMAGE_REGISTRY=ghcr.io IMAGE_NAMESPACE=$(printf '%q' "$IMAGE_NAMESPACE") IMAGE_TAG=demo docker compose --env-file .env.server pull backend frontend
+          IMAGE_REGISTRY=ghcr.io IMAGE_NAMESPACE=$(printf '%q' "$IMAGE_NAMESPACE") IMAGE_TAG=demo docker compose --env-file .env.server up -d backend frontend
+          EOF
+          )
+
+          ssh -p "${DEMO_SSH_PORT:-22}" "${DEMO_SSH_USER}@${DEMO_HOST}" "$REMOTE_COMMAND"

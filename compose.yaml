@@ -44,6 +44,7 @@ services:
         /usr/bin/mc anonymous set download local/$$STORAGE_BUCKET;
 
   backend:
+    image: "${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-lifedesigner88}/kip-demo-backend:${IMAGE_TAG:-local}"
     build:
       context: .
       dockerfile: Dockerfile
@@ -59,6 +60,7 @@ services:
       - "${BACKEND_PORT:-8080}:8080"
 
   frontend:
+    image: "${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-lifedesigner88}/kip-demo-frontend:${IMAGE_TAG:-local}"
     build:
       context: ./kip-fe
       dockerfile: Dockerfile
